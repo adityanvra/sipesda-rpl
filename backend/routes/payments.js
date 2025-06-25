@@ -67,10 +67,11 @@ router.post('/', async (req, res) => {
   try {
     const data = req.body;
     let studentNisn = data.student_nisn;
+    let studentId = data.student_id;
 
     // Support legacy student_id by converting to NISN
-    if (!studentNisn && data.student_id) {
-      const [studentResult] = await db.execute('SELECT nisn FROM students WHERE id = ?', [data.student_id]);
+    if (!studentNisn && studentId) {
+      const [studentResult] = await db.execute('SELECT nisn FROM students WHERE id = ?', [studentId]);
       if (studentResult.length > 0) {
         studentNisn = studentResult[0].nisn;
       } else {
@@ -78,13 +79,23 @@ router.post('/', async (req, res) => {
       }
     }
 
-    if (!studentNisn) {
+    // If we have NISN but no student_id, get student_id from NISN
+    if (studentNisn && !studentId) {
+      const [studentResult] = await db.execute('SELECT id FROM students WHERE nisn = ?', [studentNisn]);
+      if (studentResult.length > 0) {
+        studentId = studentResult[0].id;
+      } else {
+        return res.status(400).json({ error: 'Student not found' });
+      }
+    }
+
+    if (!studentNisn || !studentId) {
       return res.status(400).json({ error: 'student_nisn or student_id is required' });
     }
 
     const sql = `INSERT INTO payments (student_id, student_nisn, jenis_pembayaran, nominal, tanggal_pembayaran, status, keterangan, catatan, petugas, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`;
     const values = [
-      data.student_id || null, // Keep for legacy compatibility
+      studentId, // Now properly populated
       studentNisn,
       data.jenis_pembayaran, 
       data.nominal, 
