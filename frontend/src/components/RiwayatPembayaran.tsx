@@ -27,7 +27,7 @@ const RiwayatPembayaran: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'rekap' | 'siswa'>('rekap');
   const [selectedPaymentType, setSelectedPaymentType] = useState('SPP Bulanan');
-  const [selectedYear, setSelectedYear] = useState('2023');
+  const [selectedYear, setSelectedYear] = useState('2024');
   const [paymentSummary, setPaymentSummary] = useState<PaymentSummary>({
     maleStudents: 0,
     femaleStudents: 0,
@@ -78,10 +78,19 @@ const RiwayatPembayaran: React.FC = () => {
       const allPayments = await Promise.all(
         yearStudents.map(async (student) => {
           const payments = await db.getPaymentsByStudentNisn(student.nisn);
-          return payments.filter(p => 
-            p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]) && 
-            p.tanggal_pembayaran.includes(selectedYear)
-          );
+          return payments.filter(p => {
+            // Filter by payment type
+            const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
+            
+            // For SPP, we look for payments in any year since SPP is ongoing
+            // For other payments, filter by the selected year (angkatan)
+            let matchesYear = true;
+            if (selectedPaymentType !== 'SPP Bulanan') {
+              matchesYear = p.tanggal_pembayaran.includes(selectedYear);
+            }
+            
+            return matchesPaymentType && matchesYear;
+          });
         })
       );
 
@@ -100,10 +109,19 @@ const RiwayatPembayaran: React.FC = () => {
           const classPayments = await Promise.all(
             classStudents.map(async (student) => {
               const payments = await db.getPaymentsByStudentNisn(student.nisn);
-              const relevantPayments = payments.filter(p => 
-                p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]) && 
-                p.tanggal_pembayaran.includes(selectedYear)
-              );
+              const relevantPayments = payments.filter(p => {
+                // Filter by payment type
+                const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
+                
+                // For SPP, we look for payments in any year since SPP is ongoing
+                // For other payments, filter by the selected year (angkatan)
+                let matchesYear = true;
+                if (selectedPaymentType !== 'SPP Bulanan') {
+                  matchesYear = p.tanggal_pembayaran.includes(selectedYear);
+                }
+                
+                return matchesPaymentType && matchesYear;
+              });
               return {
                 hasPaid: relevantPayments.length > 0,
                 amount: relevantPayments.reduce((sum, p) => sum + p.nominal, 0)
