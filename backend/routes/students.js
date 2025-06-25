@@ -14,7 +14,19 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    const [results] = await db.execute('SELECT * FROM students WHERE id = ?', [req.params.id]);
+    // Support pencarian by ID atau NISN
+    let sql, param;
+    if (req.params.id.length > 10) {
+      // Jika lebih dari 10 karakter, kemungkinan NISN
+      sql = 'SELECT * FROM students WHERE nisn = ?';
+      param = req.params.id;
+    } else {
+      // Jika kurang, kemungkinan ID
+      sql = 'SELECT * FROM students WHERE id = ?';
+      param = req.params.id;
+    }
+    
+    const [results] = await db.execute(sql, [param]);
     res.json(results[0] || null);
   } catch (err) {
     console.error('Get student by id error:', err);
@@ -24,9 +36,7 @@ router.get('/:id', async (req, res) => {
 
 router.get('/nisn/:nisn', async (req, res) => {
   try {
-    // Karena tabel tidak punya kolom nisn, kita pakai id sementara
-    // Atau bisa search by nama jika nisn tidak ada
-    const [results] = await db.execute('SELECT * FROM students WHERE id = ?', [req.params.nisn]);
+    const [results] = await db.execute('SELECT * FROM students WHERE nisn = ?', [req.params.nisn]);
     res.json(results[0] || null);
   } catch (err) {
     console.error('Get student by nisn error:', err);
@@ -37,17 +47,19 @@ router.get('/nisn/:nisn', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const data = req.body;
-    // Map frontend fields ke database fields yang sebenarnya ada
-    const sql = `INSERT INTO students (nama, kelas, alamat, no_telepon, nama_orang_tua, created_at, updated_at) VALUES (?, ?, ?, ?, ?, NOW(), NOW())`;
+    const sql = `INSERT INTO students (nisn, nama, kelas, alamat, no_telepon, nama_orang_tua, jenis_kelamin, angkatan, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
     const values = [
+      data.nisn,
       data.nama || data.name, 
       data.kelas, 
       data.alamat, 
       data.no_hp || data.no_telepon, 
-      data.nama_wali || data.nama_orang_tua
+      data.nama_wali || data.nama_orang_tua,
+      data.jenis_kelamin || 'L',
+      data.angkatan || new Date().getFullYear().toString()
     ];
     const [result] = await db.execute(sql, values);
-    res.json({ message: 'Siswa ditambahkan', id: result.insertId });
+    res.json({ message: 'Siswa ditambahkan', id: result.insertId, nisn: data.nisn });
   } catch (err) {
     console.error('Create student error:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
@@ -62,10 +74,10 @@ router.put('/:id', async (req, res) => {
       'nisn': 'nisn',
       'nama': 'nama', 
       'kelas': 'kelas',
-      'nama_wali': 'nama_orang_tua', // Map ke nama_orang_tua yang ada di DB
+      'nama_wali': 'nama_orang_tua',
       'angkatan': 'angkatan',
       'alamat': 'alamat',
-      'no_hp': 'no_telepon', // Map ke no_telepon yang ada di DB
+      'no_hp': 'no_telepon',
       'jenis_kelamin': 'jenis_kelamin'
     };
     
