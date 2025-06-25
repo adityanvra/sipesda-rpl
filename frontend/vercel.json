@@ -11,13 +11,20 @@
   ],
   "routes": [
     {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/image.png",
+      "dest": "/image.png"
+    },
+    {
+      "src": "/user-icon.png.png",
+      "dest": "/user-icon.png.png"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
     }
-  ],
-  "functions": {
-    "app.js": {
-      "includeFiles": "dist/**"
-    }
-  }
+  ]
 } 
