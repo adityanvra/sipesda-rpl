@@ -14,19 +14,19 @@ router.get('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
   try {
-    // Support pencarian by ID atau NISN
+    // Support pencarian by NISN (primary key) atau ID lama
     let sql, param;
     if (req.params.id.length > 10) {
       // Jika lebih dari 10 karakter, kemungkinan NISN
       sql = 'SELECT * FROM students WHERE nisn = ?';
       param = req.params.id;
     } else {
-      // Jika kurang, kemungkinan ID
-      sql = 'SELECT * FROM students WHERE id = ?';
+      // Jika kurang, bisa ID lama atau NISN pendek
+      sql = 'SELECT * FROM students WHERE nisn = ? OR id = ?';
       param = req.params.id;
     }
     
-    const [results] = await db.execute(sql, [param]);
+    const [results] = await db.execute(sql, sql.includes('OR') ? [param, param] : [param]);
     res.json(results[0] || null);
   } catch (err) {
     console.error('Get student by id error:', err);
@@ -47,7 +47,7 @@ router.get('/nisn/:nisn', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const data = req.body;
-    const sql = `INSERT INTO students (nisn, nama, kelas, alamat, no_telepon, nama_orang_tua, jenis_kelamin, angkatan, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+    const sql = `INSERT INTO students (nisn, nama, kelas, alamat, no_hp, nama_wali, jenis_kelamin, angkatan, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
     const values = [
       data.nisn,
       data.nama || data.name, 
@@ -59,7 +59,7 @@ router.post('/', async (req, res) => {
       data.angkatan || new Date().getFullYear().toString()
     ];
     const [result] = await db.execute(sql, values);
-    res.json({ message: 'Siswa ditambahkan', id: result.insertId, nisn: data.nisn });
+    res.json({ message: 'Siswa ditambahkan', nisn: data.nisn });
   } catch (err) {
     console.error('Create student error:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
@@ -69,36 +69,54 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const data = req.body;
-    // Mapping dari frontend field ke database field yang sesuai
-    const fieldMapping = {
-      'nisn': 'nisn',
-      'nama': 'nama', 
-      'kelas': 'kelas',
-      'nama_wali': 'nama_orang_tua',
-      'angkatan': 'angkatan',
-      'alamat': 'alamat',
-      'no_hp': 'no_telepon',
-      'jenis_kelamin': 'jenis_kelamin'
-    };
-    
-    // Filter hanya field yang ada di database dan mapping
+    // Updated field mapping untuk database yang sudah diubah
     const validFields = [];
     const values = [];
     
-    Object.keys(data).forEach(key => {
-      if (fieldMapping[key]) {
-        const dbField = fieldMapping[key];
-        validFields.push(`${dbField} = ?`);
-        values.push(data[key]);
+    // Direct mapping - tidak perlu mapping lagi karena database sudah disesuaikan
+    const allowedFields = ['nisn', 'nama', 'kelas', 'alamat', 'no_hp', 'nama_wali', 'jenis_kelamin', 'angkatan'];
+    
+    allowedFields.forEach(field => {
+      if (data.hasOwnProperty(field) && data[field] !== undefined) {
+        validFields.push(`${field} = ?`);
+        values.push(data[field]);
       }
     });
+    
+    // Support for legacy field names
+    if (data.no_telepon && !data.no_hp) {
+      validFields.push('no_hp = ?');
+      values.push(data.no_telepon);
+    }
+    if (data.nama_orang_tua && !data.nama_wali) {
+      validFields.push('nama_wali = ?');
+      values.push(data.nama_orang_tua);
+    }
     
     if (validFields.length === 0) {
       return res.status(400).json({ error: 'No valid fields to update' });
     }
     
-    const sql = `UPDATE students SET ${validFields.join(', ')}, updated_at = NOW() WHERE id = ?`;
-    await db.execute(sql, [...values, req.params.id]);
+    // Update by NISN (primary key) if possible, otherwise by ID
+    let whereClause = 'nisn = ?';
+    let whereValue = req.params.id;
+    
+    // Jika ID tidak terlihat seperti NISN, coba cari by ID dulu untuk mendapatkan NISN
+    if (req.params.id.length <= 10) {
+      try {
+        const [existing] = await db.execute('SELECT nisn FROM students WHERE id = ?', [req.params.id]);
+        if (existing.length > 0) {
+          whereValue = existing[0].nisn;
+        }
+      } catch (err) {
+        // Fallback ke pencarian by parameter asli
+        whereClause = 'id = ?';
+        whereValue = req.params.id;
+      }
+    }
+    
+    const sql = `UPDATE students SET ${validFields.join(', ')}, updated_at = NOW() WHERE ${whereClause}`;
+    await db.execute(sql, [...values, whereValue]);
     res.json({ message: 'Siswa diperbarui' });
   } catch (err) {
     console.error('Update student error:', err);
@@ -108,7 +126,23 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await db.execute('DELETE FROM students WHERE id = ?', [req.params.id]);
+    // Delete by NISN (primary key) if possible, otherwise by ID
+    let whereClause = 'nisn = ?';
+    let whereValue = req.params.id;
+    
+    if (req.params.id.length <= 10) {
+      try {
+        const [existing] = await db.execute('SELECT nisn FROM students WHERE id = ?', [req.params.id]);
+        if (existing.length > 0) {
+          whereValue = existing[0].nisn;
+        }
+      } catch (err) {
+        whereClause = 'id = ?';
+        whereValue = req.params.id;
+      }
+    }
+    
+    await db.execute(`DELETE FROM students WHERE ${whereClause}`, [whereValue]);
     res.json({ message: 'Siswa dihapus' });
   } catch (err) {
     console.error('Delete student error:', err);
