@@ -22,6 +22,7 @@ export interface Student {
 export interface Payment {
   id: number;
   student_id: number;
+  student_nisn?: string;
   jenis_pembayaran: string;
   nominal: number;
   tanggal_pembayaran: string;

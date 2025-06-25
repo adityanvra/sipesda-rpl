@@ -77,7 +77,7 @@ const RiwayatPembayaran: React.FC = () => {
       // Get all payments for selected type and year
       const allPayments = await Promise.all(
         yearStudents.map(async (student) => {
-          const payments = await db.getPaymentsByStudentId(student.id);
+          const payments = await db.getPaymentsByStudentNisn(student.nisn);
           return payments.filter(p => 
             p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]) && 
             p.tanggal_pembayaran.includes(selectedYear)
@@ -99,7 +99,7 @@ const RiwayatPembayaran: React.FC = () => {
           const classStudents = yearStudents.filter(s => s.kelas === className);
           const classPayments = await Promise.all(
             classStudents.map(async (student) => {
-              const payments = await db.getPaymentsByStudentId(student.id);
+              const payments = await db.getPaymentsByStudentNisn(student.nisn);
               const relevantPayments = payments.filter(p => 
                 p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]) && 
                 p.tanggal_pembayaran.includes(selectedYear)
@@ -173,7 +173,7 @@ const RiwayatPembayaran: React.FC = () => {
         setStudent(foundStudent);
         
         // Get student's payments
-        const payments = await db.getPaymentsByStudentId(foundStudent.id);
+        const payments = await db.getPaymentsByStudentNisn(foundStudent.nisn);
         
         // Separate payments by type
         setStudentPayments({

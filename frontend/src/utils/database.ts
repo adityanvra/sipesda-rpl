@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { User, Student, Payment, PaymentType } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://sipesda-deploy-backend.vercel.app/api';
 
 class DatabaseManager {
   // USER
@@ -80,6 +80,11 @@ class DatabaseManager {
     return response.data;
   }
 
+  async getPaymentsByStudentNisn(nisn: string): Promise<Payment[]> {
+    const response = await axios.get(`${API_BASE_URL}/payments?student_nisn=${nisn}`);
+    return response.data;
+  }
+
   async createPayment(payment: Omit<Payment, 'id' | 'created_at'>): Promise<boolean> {
     try {
       await axios.post(`${API_BASE_URL}/payments`, payment);
@@ -125,6 +130,18 @@ class DatabaseManager {
   try {
     const response = await axios.get(`${API_BASE_URL}/payments/by-month`, {
       params: { studentId, month, year }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Gagal mengambil data pembayaran per bulan:', error);
+    return [];
+  }
+}
+
+  async getPaymentsByMonthNisn(studentNisn: string, month: string, year: string): Promise<Payment[]> {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/payments/by-month`, {
+      params: { studentNisn, month, year }
     });
     return response.data;
   } catch (error) {

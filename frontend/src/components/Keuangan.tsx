@@ -59,7 +59,7 @@ const Keuangan: React.FC = () => {
       const foundStudent = await db.getStudentByNisn(searchNisn);
       if (foundStudent) {
         setStudent(foundStudent);
-        const studentPayments = await db.getPaymentsByStudentId(foundStudent.id);
+        const studentPayments = await db.getPaymentsByStudentNisn(foundStudent.nisn);
         setPayments(studentPayments);
       } else {
         alert('Siswa dengan NISN tersebut tidak ditemukan');
@@ -112,6 +112,7 @@ const Keuangan: React.FC = () => {
         const payment = {
           receipt_id: receiptId,
           student_id: student.id,
+          student_nisn: student.nisn,
           jenis_pembayaran: `SPP ${month} ${sppYear}`,
           nominal: SPP_PER_MONTH,
           tanggal_pembayaran: currentDate,
@@ -128,7 +129,7 @@ const Keuangan: React.FC = () => {
 
       if (allSuccess) {
         // Update payments list
-        const studentPayments = await db.getPaymentsByStudentId(student.id);
+        const studentPayments = await db.getPaymentsByStudentNisn(student.nisn);
         setPayments(studentPayments);
         
         // Set receipt data for printing
@@ -307,7 +308,7 @@ const Keuangan: React.FC = () => {
         if (success) {
           alert('Pembayaran berhasil dihapus');
           // Refresh payments
-          const updatedPayments = await db.getPaymentsByStudentId(student.id);
+          const updatedPayments = await db.getPaymentsByStudentNisn(student.nisn);
           setPayments(updatedPayments);
         } else {
           alert('Gagal menghapus pembayaran');
