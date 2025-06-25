@@ -9,12 +9,12 @@ const paymentTypes = require('../routes/paymentTypes');
 
 const app = express();
 
-// CORS configuration for production - Update dengan domain Netlify Anda
+// CORS configuration for production - Update dengan domain Vercel Anda  
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        'https://your-netlify-domain.netlify.app', // Ganti dengan domain Netlify Anda
-        'https://your-netlify-domain.netlify.com'  // Alternative domain
+        'https://sipesda-deploy.vercel.app', // Frontend URL yang sudah ada
+        'https://sipesda-deploy-git-main.vercel.app'  // Alternative domain
       ]
     : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
