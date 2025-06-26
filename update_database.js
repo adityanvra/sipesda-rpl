@@ -188,7 +188,27 @@ async function updateDatabase() {
     `);
     console.log('✅ Added/updated users');
 
-    // 6. Check final table structure
+    // 7. Fix student_nisn in payments table to match students.nisn format
+    console.log('📝 Fixing student_nisn in payments table...');
+    
+    // Check current payments data
+    const [currentPayments] = await connection.execute('SELECT id, student_id, student_nisn FROM payments LIMIT 5');
+    console.log('Current payments data (before fix):', currentPayments);
+    
+    // Update student_nisn to match students.nisn format
+    await connection.execute(`
+      UPDATE payments p
+      JOIN students s ON p.student_id = s.id
+      SET p.student_nisn = s.nisn
+      WHERE p.student_nisn != s.nisn
+    `);
+    console.log('✅ Fixed student_nisn in payments table');
+    
+    // Check updated payments data
+    const [updatedPayments] = await connection.execute('SELECT id, student_id, student_nisn FROM payments LIMIT 5');
+    console.log('Updated payments data (after fix):', updatedPayments);
+
+    // 8. Check final table structure
     console.log('📊 Checking final table structure...');
     const [columns] = await connection.execute(`
       SHOW COLUMNS FROM students
