@@ -84,6 +84,11 @@ const RiwayatPembayaran: React.FC = () => {
         relevantStudents.map(async (student) => {
           const payments = await db.getPaymentsByStudentNisn(student.nisn);
           console.log(`Payments for student ${student.nisn}:`, payments);
+          
+          // Let's also try to get payments by student_id for debugging
+          const paymentsById = await db.getPaymentsByStudentId(student.id);
+          console.log(`Payments by student_id ${student.id}:`, paymentsById);
+          
           return payments.filter(p => {
             // Filter by payment type
             const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
