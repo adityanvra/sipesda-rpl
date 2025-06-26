@@ -66,9 +66,11 @@ const RiwayatPembayaran: React.FC = () => {
       
       // Get all students
       const students = await db.getAllStudents();
+      console.log('All students:', students);
       
       // For all payment types including SPP Bulanan, filter by selected year
       const relevantStudents = students.filter(s => s.angkatan === selectedYear);
+      console.log('Relevant students for angkatan', selectedYear, ':', relevantStudents);
       
       // Filter students by selected year for statistics
       const yearStudents = students.filter(s => s.angkatan === selectedYear);
@@ -81,6 +83,7 @@ const RiwayatPembayaran: React.FC = () => {
       const allPayments = await Promise.all(
         relevantStudents.map(async (student) => {
           const payments = await db.getPaymentsByStudentNisn(student.nisn);
+          console.log(`Payments for student ${student.nisn}:`, payments);
           return payments.filter(p => {
             // Filter by payment type
             const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
@@ -93,10 +96,13 @@ const RiwayatPembayaran: React.FC = () => {
               matchesYear = paymentYear === selectedYear;
             }
             
+            console.log(`Payment ${p.jenis_pembayaran}: matchesPaymentType=${matchesPaymentType}, matchesYear=${matchesYear}`);
             return matchesPaymentType && matchesYear;
           });
         })
       );
+
+      console.log('All filtered payments:', allPayments);
 
       // Generate all class combinations
       const classes = [];
