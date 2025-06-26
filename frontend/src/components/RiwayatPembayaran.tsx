@@ -81,7 +81,6 @@ const RiwayatPembayaran: React.FC = () => {
       const allPayments = await Promise.all(
         relevantStudents.map(async (student) => {
           const payments = await db.getPaymentsByStudentNisn(student.nisn);
-          console.log(`🔍 Raw payments for student ${student.nisn}:`, payments);
           
           const filtered = payments.filter(p => {
             // Filter by payment type
@@ -95,16 +94,12 @@ const RiwayatPembayaran: React.FC = () => {
               matchesYear = paymentYear === selectedYear;
             }
             
-            console.log(`🔍 Payment "${p.jenis_pembayaran}": type="${selectedPaymentType}", matchesType=${matchesPaymentType}, matchesYear=${matchesYear}`);
             return matchesPaymentType && matchesYear;
           });
           
-          console.log(`✅ Filtered payments for student ${student.nisn}:`, filtered);
           return filtered;
         })
       );
-      
-      console.log('🎯 All filtered payments:', allPayments.flat());
 
       // Generate all class combinations
       const classes = [];
@@ -245,6 +240,232 @@ const RiwayatPembayaran: React.FC = () => {
   // Add click handler for payments
   const handlePaymentClick = (payment: Payment) => {
     setSelectedPayment(payment);
+  };
+
+  // Add print receipt function
+  const handlePrintReceipt = (payment: Payment) => {
+    if (!student) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    const receiptHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Nota Pembayaran - ${payment.jenis_pembayaran}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 12px;
+            line-height: 1.4;
+          }
+          .receipt {
+            max-width: 400px;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 20px;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          .school-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          .school-info {
+            font-size: 10px;
+            color: #666;
+          }
+          .receipt-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 15px 0;
+            text-transform: uppercase;
+          }
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 2px 0;
+          }
+          .info-label {
+            font-weight: bold;
+            min-width: 120px;
+          }
+          .divider {
+            border-top: 1px dashed #333;
+            margin: 15px 0;
+          }
+          .amount-section {
+            background: #f9f9f9;
+            padding: 10px;
+            margin: 15px 0;
+            text-align: center;
+          }
+          .amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2563eb;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+          }
+          .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+          }
+          .signature-box {
+            text-align: center;
+            width: 45%;
+          }
+          .signature-line {
+            border-top: 1px solid #333;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 10px;
+          }
+          @media print {
+            body { margin: 0; }
+            .receipt { border: none; box-shadow: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="header">
+            <div class="school-name">SIPESDA</div>
+            <div class="school-info">Sistem Informasi Pembayaran Siswa</div>
+            <div class="school-info">Jl. Pendidikan No. 123, Jakarta</div>
+          </div>
+          
+          <div class="receipt-title">Nota Pembayaran</div>
+          
+          <div class="info-row">
+            <span class="info-label">No. Nota:</span>
+            <span>#${payment.id.toString().padStart(6, '0')}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Tanggal:</span>
+            <span>${new Date(payment.tanggal_pembayaran).toLocaleDateString('id-ID', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Waktu:</span>
+            <span>${new Date(payment.created_at || payment.tanggal_pembayaran).toLocaleTimeString('id-ID')}</span>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div class="info-row">
+            <span class="info-label">NISN:</span>
+            <span>${student.nisn}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Nama Siswa:</span>
+            <span>${student.nama}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Kelas:</span>
+            <span>${student.kelas}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Angkatan:</span>
+            <span>${student.angkatan}</span>
+          </div>
+          
+          <div class="divider"></div>
+          
+          <div class="info-row">
+            <span class="info-label">Jenis Pembayaran:</span>
+            <span>${payment.jenis_pembayaran}</span>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Status:</span>
+            <span style="color: #16a34a; font-weight: bold;">${payment.status.toUpperCase()}</span>
+          </div>
+          
+          ${payment.keterangan ? `
+          <div class="info-row">
+            <span class="info-label">Keterangan:</span>
+            <span>${payment.keterangan}</span>
+          </div>
+          ` : ''}
+          
+          ${payment.catatan ? `
+          <div class="info-row">
+            <span class="info-label">Catatan:</span>
+            <span>${payment.catatan}</span>
+          </div>
+          ` : ''}
+          
+          <div class="amount-section">
+            <div>TOTAL PEMBAYARAN</div>
+                         <div class="amount">Rp ${parseFloat(String(payment.nominal)).toLocaleString('id-ID')}</div>
+          </div>
+          
+          <div class="info-row">
+            <span class="info-label">Petugas:</span>
+            <span>${payment.petugas}</span>
+          </div>
+          
+          <div class="signature-section">
+            <div class="signature-box">
+              <div>Penerima</div>
+              <div class="signature-line">${payment.petugas}</div>
+            </div>
+            <div class="signature-box">
+              <div>Pembayar</div>
+              <div class="signature-line">${student.nama}</div>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <div>Terima kasih atas pembayaran Anda</div>
+            <div>Simpan nota ini sebagai bukti pembayaran yang sah</div>
+            <div style="margin-top: 10px;">
+              Dicetak pada: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}
+            </div>
+          </div>
+        </div>
+        
+        <script>
+          window.onload = function() {
+            window.print();
+            window.onafterprint = function() {
+              window.close();
+            };
+          };
+        </script>
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(receiptHTML);
+    printWindow.document.close();
   };
 
   if (isDbLoading) {
@@ -582,7 +803,7 @@ const RiwayatPembayaran: React.FC = () => {
                                   </div>
                                   <div className="text-right">
                                     <p className="text-lg font-bold text-green-600">
-                                      Rp {payment.nominal.toLocaleString()}
+                                      Rp {parseFloat(String(payment.nominal)).toLocaleString()}
                                     </p>
                                     <p className="text-sm text-gray-500">
                                       {payment.status === 'lunas' ? 'Lunas' : 'Belum Lunas'}
@@ -597,6 +818,19 @@ const RiwayatPembayaran: React.FC = () => {
                                     {payment.catatan && (
                                       <p className="mt-1">Catatan: {payment.catatan}</p>
                                     )}
+                                  </div>
+                                )}
+                                {selectedPayment?.id === payment.id && payment.status === 'lunas' && (
+                                  <div className="mt-3 pt-3 border-t flex justify-end">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePrintReceipt(payment);
+                                      }}
+                                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                                    >
+                                      🖨️ Cetak Nota
+                                    </button>
                                   </div>
                                 )}
                               </div>
@@ -632,7 +866,7 @@ const RiwayatPembayaran: React.FC = () => {
                                   </div>
                                   <div className="text-right">
                                     <p className="text-lg font-bold text-green-600">
-                                      Rp {payment.nominal.toLocaleString()}
+                                      Rp {parseFloat(String(payment.nominal)).toLocaleString()}
                                     </p>
                                     <p className="text-sm text-gray-500">
                                       {payment.status === 'lunas' ? 'Lunas' : 'Belum Lunas'}
@@ -647,6 +881,19 @@ const RiwayatPembayaran: React.FC = () => {
                                     {payment.catatan && (
                                       <p className="mt-1">Catatan: {payment.catatan}</p>
                                     )}
+                                  </div>
+                                )}
+                                {selectedPayment?.id === payment.id && payment.status === 'lunas' && (
+                                  <div className="mt-3 pt-3 border-t flex justify-end">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePrintReceipt(payment);
+                                      }}
+                                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+                                    >
+                                      🖨️ Cetak Nota
+                                    </button>
                                   </div>
                                 )}
                               </div>
