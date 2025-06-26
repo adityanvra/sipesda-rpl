@@ -85,9 +85,13 @@ const RiwayatPembayaran: React.FC = () => {
             // Filter by payment type
             const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
             
-            // For all payment types including SPP, filter by the selected year
-            const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
-            const matchesYear = paymentYear === selectedYear;
+            // For SPP Bulanan, don't filter by payment year since students can pay SPP in any year
+            // For other payment types, filter by the selected year
+            let matchesYear = true;
+            if (selectedPaymentType !== 'SPP Bulanan') {
+              const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
+              matchesYear = paymentYear === selectedYear;
+            }
             
             return matchesPaymentType && matchesYear;
           });
@@ -115,9 +119,13 @@ const RiwayatPembayaran: React.FC = () => {
                 // Filter by payment type
                 const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
                 
-                // For all payment types including SPP, filter by the selected year
-                const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
-                const matchesYear = paymentYear === selectedYear;
+                // For SPP Bulanan, don't filter by payment year since students can pay SPP in any year
+                // For other payment types, filter by the selected year
+                let matchesYear = true;
+                if (selectedPaymentType !== 'SPP Bulanan') {
+                  const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
+                  matchesYear = paymentYear === selectedYear;
+                }
                 
                 return matchesPaymentType && matchesYear;
               });
