@@ -14,8 +14,8 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { nama, nominal, periode, aktif = true } = req.body;
-    const sql = 'INSERT INTO payment_types (nama, nominal, periode, aktif) VALUES (?, ?, ?, ?)';
+  const { nama, nominal, periode, aktif = true } = req.body;
+  const sql = 'INSERT INTO payment_types (nama, nominal, periode, aktif) VALUES (?, ?, ?, ?)';
     const [result] = await db.execute(sql, [nama, nominal, periode, aktif]);
     res.json({ message: 'Jenis pembayaran ditambahkan', id: result.insertId });
   } catch (err) {

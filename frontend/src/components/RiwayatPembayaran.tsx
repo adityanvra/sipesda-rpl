@@ -67,19 +67,17 @@ const RiwayatPembayaran: React.FC = () => {
       // Get all students
       const students = await db.getAllStudents();
       
-      // For SPP Bulanan, include all students; for other payments, filter by selected year
-      const relevantStudents = selectedPaymentType === 'SPP Bulanan' 
-        ? students 
-        : students.filter(s => s.angkatan === selectedYear);
+      // For all payment types including SPP Bulanan, filter by selected year
+      const relevantStudents = students.filter(s => s.angkatan === selectedYear);
       
-      // Filter students by selected year for statistics (but use all students for SPP calculation)
+      // Filter students by selected year for statistics
       const yearStudents = students.filter(s => s.angkatan === selectedYear);
       
       // Calculate gender statistics for the selected year
       const maleStudents = yearStudents.filter(s => s.jenis_kelamin === 'L').length;
       const femaleStudents = yearStudents.filter(s => s.jenis_kelamin === 'P').length;
 
-      // Get all payments for selected type
+      // Get all payments for selected type and year
       const allPayments = await Promise.all(
         relevantStudents.map(async (student) => {
           const payments = await db.getPaymentsByStudentNisn(student.nisn);
@@ -87,12 +85,9 @@ const RiwayatPembayaran: React.FC = () => {
             // Filter by payment type
             const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
             
-            // For SPP, we look for payments in any year since SPP is ongoing
-            // For other payments, filter by the selected year (angkatan)
-            let matchesYear = true;
-            if (selectedPaymentType !== 'SPP Bulanan') {
-              matchesYear = p.tanggal_pembayaran.includes(selectedYear);
-            }
+            // For all payment types including SPP, filter by the selected year
+            const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
+            const matchesYear = paymentYear === selectedYear;
             
             return matchesPaymentType && matchesYear;
           });
@@ -110,11 +105,8 @@ const RiwayatPembayaran: React.FC = () => {
       // Calculate class summaries
       const classSummaries = await Promise.all(
         classes.map(async (className) => {
-          // For SPP Bulanan, show all students in the class regardless of year
-          // For other payments, only show students from selected year
-          const classStudents = selectedPaymentType === 'SPP Bulanan'
-            ? students.filter(s => s.kelas === className)
-            : yearStudents.filter(s => s.kelas === className);
+          // Only show students from selected year for all payment types
+          const classStudents = yearStudents.filter(s => s.kelas === className);
             
           const classPayments = await Promise.all(
             classStudents.map(async (student) => {
@@ -123,12 +115,9 @@ const RiwayatPembayaran: React.FC = () => {
                 // Filter by payment type
                 const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
                 
-                // For SPP, we look for payments in any year since SPP is ongoing
-                // For other payments, filter by the selected year (angkatan)
-                let matchesYear = true;
-                if (selectedPaymentType !== 'SPP Bulanan') {
-                  matchesYear = p.tanggal_pembayaran.includes(selectedYear);
-                }
+                // For all payment types including SPP, filter by the selected year
+                const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
+                const matchesYear = paymentYear === selectedYear;
                 
                 return matchesPaymentType && matchesYear;
               });
@@ -142,22 +131,18 @@ const RiwayatPembayaran: React.FC = () => {
           const paidStudents = classPayments.filter(p => p.hasPaid).length;
           const totalPaid = classPayments.reduce((sum, p) => sum + p.amount, 0);
           
-          // For SPP Bulanan, show total accumulated funds instead of calculating against expected amounts
+          // Calculate expected amount based on payment type for non-SPP payments
           let totalUnpaid = 0;
-          if (selectedPaymentType === 'SPP Bulanan') {
-            // For SPP, we don't calculate unpaid amounts, just show total accumulated
-            totalUnpaid = 0;
-          } else {
-            // Calculate expected amount based on payment type for non-SPP payments
+          if (selectedPaymentType !== 'SPP Bulanan') {
             let expectedAmount = 0;
             if (selectedPaymentType === 'Buku LKS') {
-              expectedAmount = classStudents.length * 250000; // 250000 per student
-            } else if (selectedPaymentType === 'Seragam') {
-              expectedAmount = classStudents.length * 300000; // 300000 per student
-            } else if (selectedPaymentType === 'Ekstrakulikuler') {
-              expectedAmount = classStudents.length * 150000; // 150000 per student
-            } else if (selectedPaymentType === 'Kegiatan') {
-              expectedAmount = classStudents.length * 200000; // 200000 per student
+            expectedAmount = classStudents.length * 250000; // 250000 per student
+          } else if (selectedPaymentType === 'Seragam') {
+            expectedAmount = classStudents.length * 300000; // 300000 per student
+          } else if (selectedPaymentType === 'Ekstrakulikuler') {
+            expectedAmount = classStudents.length * 150000; // 150000 per student
+          } else if (selectedPaymentType === 'Kegiatan') {
+            expectedAmount = classStudents.length * 200000; // 200000 per student
             }
             totalUnpaid = expectedAmount - totalPaid;
           }
@@ -346,25 +331,25 @@ const RiwayatPembayaran: React.FC = () => {
                 </div>
                 <div className="p-6">
                   {selectedPaymentType === 'SPP Bulanan' ? (
-                    // For SPP Bulanan, show total accumulated funds
+                    // For SPP Bulanan, show total accumulated funds for selected year
                     <div className="mb-4">
-                      <p className="font-medium">Rekap Total Dana SPP Bulanan</p>
+                      <p className="font-medium">Total Dana SPP Bulanan Siswa Angkatan {selectedYear} yang sudah dibayarkan</p>
                       <p className="text-2xl font-bold text-green-600">Rp {paymentSummary.totalPaid.toLocaleString()}</p>
                       <p className="text-sm text-gray-500 mt-2">
-                        Total akumulasi dana SPP yang telah terkumpul dari semua pembayaran siswa (seluruh angkatan)
+                        Total akumulasi dana SPP yang telah terkumpul dari pembayaran siswa angkatan {selectedYear} pada tahun {selectedYear}
                       </p>
                     </div>
                   ) : (
                     // For other payment types, show paid vs unpaid
                     <>
-                      <div className="mb-4">
-                        <p className="font-medium">Total Dana {selectedPaymentType} Siswa Angkatan {selectedYear} yang sudah dibayarkan</p>
-                        <p className="text-xl font-bold text-green-600">Rp {paymentSummary.totalPaid.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium">Total Dana {selectedPaymentType} Siswa Angkatan {selectedYear} yang belum dibayarkan</p>
-                        <p className="text-xl font-bold text-red-600">Rp {paymentSummary.totalUnpaid.toLocaleString()}</p>
-                      </div>
+                  <div className="mb-4">
+                    <p className="font-medium">Total Dana {selectedPaymentType} Siswa Angkatan {selectedYear} yang sudah dibayarkan</p>
+                    <p className="text-xl font-bold text-green-600">Rp {paymentSummary.totalPaid.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Total Dana {selectedPaymentType} Siswa Angkatan {selectedYear} yang belum dibayarkan</p>
+                    <p className="text-xl font-bold text-red-600">Rp {paymentSummary.totalUnpaid.toLocaleString()}</p>
+                  </div>
                     </>
                   )}
                 </div>
@@ -410,20 +395,20 @@ const RiwayatPembayaran: React.FC = () => {
                                 </div>
                               </div>
                               {selectedPaymentType !== 'SPP Bulanan' && (
-                                <div>
-                                  <div className="flex items-center justify-between text-sm mb-1">
-                                    <span>Siswa Belum Lunas {selectedPaymentType}</span>
-                                    <span>{summary.unpaidStudents} Siswa</span>
-                                  </div>
-                                  <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                      className="bg-red-500 h-2 rounded-full"
-                                      style={{
-                                        width: `${summary.totalStudents ? (summary.unpaidStudents / summary.totalStudents) * 100 : 0}%`
-                                      }}
-                                    />
-                                  </div>
+                              <div>
+                                <div className="flex items-center justify-between text-sm mb-1">
+                                  <span>Siswa Belum Lunas {selectedPaymentType}</span>
+                                  <span>{summary.unpaidStudents} Siswa</span>
                                 </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-red-500 h-2 rounded-full"
+                                    style={{
+                                      width: `${summary.totalStudents ? (summary.unpaidStudents / summary.totalStudents) * 100 : 0}%`
+                                    }}
+                                  />
+                                </div>
+                              </div>
                               )}
                               {selectedPaymentType === 'SPP Bulanan' && (
                                 <div>
@@ -432,7 +417,7 @@ const RiwayatPembayaran: React.FC = () => {
                                     <span className="font-bold text-green-600">Rp {summary.totalPaid.toLocaleString()}</span>
                                   </div>
                                   <div className="text-xs text-gray-500 mt-1">
-                                    Akumulasi dari {summary.paidStudents} siswa yang telah melakukan pembayaran SPP
+                                    Dana SPP angkatan {selectedYear} dari {summary.paidStudents} siswa yang telah melakukan pembayaran pada tahun {selectedYear}
                                   </div>
                                 </div>
                               )}
