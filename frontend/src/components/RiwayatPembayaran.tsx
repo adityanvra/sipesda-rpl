@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Student, Payment } from '../types';
 import { useDatabaseContext } from '../contexts/DatabaseContext';
 import RealTimeClock from './RealTimeClock';
+import * as XLSX from 'xlsx';
 
 interface ClassSummary {
   className: string;
@@ -468,6 +469,150 @@ const RiwayatPembayaran: React.FC = () => {
     printWindow.document.close();
   };
 
+  // Add Excel export function
+  const handleExportToExcel = async () => {
+    if (!paymentSummary || !db) return;
+    
+    try {
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Sheet 1: Summary Overview
+      const summaryData = [
+        ['REKAP PEMBAYARAN ' + selectedPaymentType.toUpperCase()],
+        ['Angkatan: ' + selectedYear],
+        ['Tanggal Export: ' + new Date().toLocaleDateString('id-ID')],
+        [],
+        ['RINGKASAN'],
+        ['Total Siswa Laki-laki', paymentSummary.maleStudents],
+        ['Total Siswa Perempuan', paymentSummary.femaleStudents],
+        ['Total Siswa', paymentSummary.maleStudents + paymentSummary.femaleStudents],
+        [],
+        ['TOTAL DANA'],
+        ['Yang Sudah Dibayarkan', 'Rp ' + paymentSummary.totalPaid.toLocaleString('id-ID')],
+        ['Yang Belum Dibayarkan', 'Rp ' + paymentSummary.totalUnpaid.toLocaleString('id-ID')],
+        ['Total Expected', 'Rp ' + (paymentSummary.totalPaid + paymentSummary.totalUnpaid).toLocaleString('id-ID')],
+        [],
+        ['BREAKDOWN PER KELAS'],
+        ['Kelas', 'Total Siswa', 'Siswa Lunas', 'Siswa Belum Lunas', 'Dana Terkumpul', 'Dana Belum Terkumpul']
+      ];
+      
+      // Add class breakdown data
+      paymentSummary.classSummaries.forEach(classData => {
+        summaryData.push([
+          classData.className,
+          classData.totalStudents,
+          classData.paidStudents,
+          classData.unpaidStudents,
+          'Rp ' + classData.totalPaid.toLocaleString('id-ID'),
+          'Rp ' + classData.totalUnpaid.toLocaleString('id-ID')
+        ]);
+      });
+      
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Ringkasan');
+      
+      // Sheet 2: Detailed Student Payments
+      const students = await db.getAllStudents();
+      const relevantStudents = students.filter(s => s.angkatan === selectedYear);
+      
+      const detailData = [
+        ['DETAIL PEMBAYARAN SISWA'],
+        ['Jenis Pembayaran: ' + selectedPaymentType],
+        ['Angkatan: ' + selectedYear],
+        [],
+        ['NISN', 'Nama Siswa', 'Kelas', 'Jenis Kelamin', 'Status Pembayaran', 'Total Dibayar', 'Tanggal Pembayaran Terakhir', 'Petugas']
+      ];
+      
+      for (const student of relevantStudents) {
+        const payments = await db.getPaymentsByStudentNisn(student.nisn);
+        const relevantPayments = payments.filter(p => {
+          const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
+          let matchesYear = true;
+          if (selectedPaymentType !== 'SPP Bulanan') {
+            const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
+            matchesYear = paymentYear === selectedYear;
+          }
+          return matchesPaymentType && matchesYear;
+        });
+        
+        const totalPaid = relevantPayments.reduce((sum, p) => sum + parseFloat(String(p.nominal || 0)), 0);
+        const lastPayment = relevantPayments.length > 0 ? relevantPayments[relevantPayments.length - 1] : null;
+        
+        detailData.push([
+          student.nisn,
+          student.nama,
+          student.kelas,
+          student.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan',
+          relevantPayments.length > 0 ? 'Sudah Bayar' : 'Belum Bayar',
+          'Rp ' + totalPaid.toLocaleString('id-ID'),
+          lastPayment ? new Date(lastPayment.tanggal_pembayaran).toLocaleDateString('id-ID') : '-',
+          lastPayment ? lastPayment.petugas : '-'
+        ]);
+      }
+      
+      const detailSheet = XLSX.utils.aoa_to_sheet(detailData);
+      XLSX.utils.book_append_sheet(workbook, detailSheet, 'Detail Siswa');
+      
+      // Sheet 3: Payment History (if SPP)
+      if (selectedPaymentType === 'SPP Bulanan') {
+        const sppHistoryData = [
+          ['RIWAYAT PEMBAYARAN SPP DETAIL'],
+          ['Angkatan: ' + selectedYear],
+          [],
+          ['NISN', 'Nama Siswa', 'Kelas', 'Bulan/Tahun SPP', 'Nominal', 'Tanggal Bayar', 'Status', 'Petugas', 'Keterangan']
+        ];
+        
+        for (const student of relevantStudents) {
+          const payments = await db.getPaymentsByStudentNisn(student.nisn);
+          const sppPayments = payments.filter(p => p.jenis_pembayaran.startsWith('SPP'));
+          
+          if (sppPayments.length > 0) {
+            sppPayments.forEach(payment => {
+              sppHistoryData.push([
+                student.nisn,
+                student.nama,
+                student.kelas,
+                payment.jenis_pembayaran,
+                'Rp ' + parseFloat(String(payment.nominal || 0)).toLocaleString('id-ID'),
+                new Date(payment.tanggal_pembayaran).toLocaleDateString('id-ID'),
+                payment.status,
+                payment.petugas,
+                payment.keterangan || '-'
+              ]);
+            });
+          } else {
+            sppHistoryData.push([
+              student.nisn,
+              student.nama,
+              student.kelas,
+              'Belum ada pembayaran SPP',
+              'Rp 0',
+              '-',
+              'Belum Bayar',
+              '-',
+              '-'
+            ]);
+          }
+        }
+        
+        const sppHistorySheet = XLSX.utils.aoa_to_sheet(sppHistoryData);
+        XLSX.utils.book_append_sheet(workbook, sppHistorySheet, 'Riwayat SPP');
+      }
+      
+      // Generate filename
+      const fileName = `Rekap_${selectedPaymentType.replace(' ', '_')}_Angkatan_${selectedYear}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      
+      // Write and download
+      XLSX.writeFile(workbook, fileName);
+      
+      alert('File Excel berhasil didownload!');
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Terjadi kesalahan saat mengexport ke Excel');
+    }
+  };
+
   if (isDbLoading) {
     return (
       <div className="p-6">
@@ -578,8 +723,15 @@ const RiwayatPembayaran: React.FC = () => {
 
               {/* Payment Summary */}
               <div className="bg-white border rounded-lg mb-6">
-                <div className="bg-slate-800 text-white p-4">
+                <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
                   <h3 className="font-bold">Rekap Total Dana {selectedPaymentType}</h3>
+                  <button
+                    onClick={handleExportToExcel}
+                    disabled={loading || !paymentSummary}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    📊 Export Excel
+                  </button>
                 </div>
                 <div className="p-6">
                   {selectedPaymentType === 'SPP Bulanan' ? (
