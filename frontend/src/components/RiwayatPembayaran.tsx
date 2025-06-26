@@ -139,14 +139,14 @@ const RiwayatPembayaran: React.FC = () => {
               });
               return {
                 hasPaid: relevantPayments.length > 0,
-                amount: relevantPayments.reduce((sum, p) => sum + p.nominal, 0)
+                amount: relevantPayments.reduce((sum, p) => sum + parseFloat(String(p.nominal || 0)), 0)
               };
             })
           );
 
           const paidStudents = classPayments.filter(p => p.hasPaid).length;
           const totalPaid = classPayments.reduce((sum, p) => {
-            const amount = p.amount || 0;
+            const amount = p.amount || 0;  // Use 'amount' which is already calculated above
             return sum + (isNaN(amount) ? 0 : amount);
           }, 0);
           
