@@ -129,7 +129,10 @@ const RiwayatPembayaran: React.FC = () => {
           );
 
           const paidStudents = classPayments.filter(p => p.hasPaid).length;
-          const totalPaid = classPayments.reduce((sum, p) => sum + p.amount, 0);
+          const totalPaid = classPayments.reduce((sum, p) => {
+            const amount = p.amount || 0;
+            return sum + (isNaN(amount) ? 0 : amount);
+          }, 0);
           
           // Calculate expected amount based on payment type for non-SPP payments
           let totalUnpaid = 0;
@@ -144,7 +147,13 @@ const RiwayatPembayaran: React.FC = () => {
           } else if (selectedPaymentType === 'Kegiatan') {
             expectedAmount = classStudents.length * 200000; // 200000 per student
             }
-            totalUnpaid = expectedAmount - totalPaid;
+            totalUnpaid = Math.max(0, expectedAmount - totalPaid);
+          } else {
+            // For SPP Bulanan, calculate expected amount based on monthly SPP fee
+            // Assuming SPP is 100,000 per month and we're calculating for the selected year (12 months)
+            const expectedSPPPerStudentPerYear = 100000 * 12; // 1,200,000 per student per year
+            const expectedAmount = classStudents.length * expectedSPPPerStudentPerYear;
+            totalUnpaid = Math.max(0, expectedAmount - totalPaid); // Ensure non-negative
           }
 
           return {
@@ -159,8 +168,14 @@ const RiwayatPembayaran: React.FC = () => {
       );
 
       // Calculate total statistics
-      const totalPaid = classSummaries.reduce((sum, c) => sum + c.totalPaid, 0);
-      const totalUnpaid = classSummaries.reduce((sum, c) => sum + c.totalUnpaid, 0);
+      const totalPaid = classSummaries.reduce((sum, c) => {
+        const amount = c.totalPaid || 0;
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
+      const totalUnpaid = classSummaries.reduce((sum, c) => {
+        const amount = c.totalUnpaid || 0;
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
 
       setPaymentSummary({
         maleStudents,
@@ -332,13 +347,20 @@ const RiwayatPembayaran: React.FC = () => {
                 <div className="p-6">
                   {selectedPaymentType === 'SPP Bulanan' ? (
                     // For SPP Bulanan, show total accumulated funds for selected year
+                    <>
                     <div className="mb-4">
                       <p className="font-medium">Total Dana SPP Bulanan Siswa Angkatan {selectedYear} yang sudah dibayarkan</p>
                       <p className="text-2xl font-bold text-green-600">Rp {paymentSummary.totalPaid.toLocaleString()}</p>
-                      <p className="text-sm text-gray-500 mt-2">
-                        Total akumulasi dana SPP yang telah terkumpul dari pembayaran siswa angkatan {selectedYear} pada tahun {selectedYear}
-                      </p>
                     </div>
+                    <div className="mb-4">
+                      <p className="font-medium">Total Dana SPP Bulanan Siswa Angkatan {selectedYear} yang belum dibayarkan</p>
+                      <p className="text-2xl font-bold text-red-600">Rp {paymentSummary.totalUnpaid.toLocaleString()}</p>
+                    </div>
+                    <div className="text-sm text-gray-500 mt-2">
+                      <p>Total akumulasi dana SPP yang telah terkumpul dari pembayaran siswa angkatan {selectedYear} pada tahun {selectedYear}</p>
+                      <p className="mt-1">Perhitungan berdasarkan SPP Rp 100.000/bulan × 12 bulan = Rp 1.200.000/siswa/tahun</p>
+                    </div>
+                    </>
                   ) : (
                     // For other payment types, show paid vs unpaid
                     <>
@@ -394,7 +416,6 @@ const RiwayatPembayaran: React.FC = () => {
                                   />
                                 </div>
                               </div>
-                              {selectedPaymentType !== 'SPP Bulanan' && (
                               <div>
                                 <div className="flex items-center justify-between text-sm mb-1">
                                   <span>Siswa Belum Lunas {selectedPaymentType}</span>
@@ -409,7 +430,6 @@ const RiwayatPembayaran: React.FC = () => {
                                   />
                                 </div>
                               </div>
-                              )}
                               {selectedPaymentType === 'SPP Bulanan' && (
                                 <div>
                                   <div className="flex items-center justify-between text-sm mb-1">
