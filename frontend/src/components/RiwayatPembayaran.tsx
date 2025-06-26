@@ -81,8 +81,9 @@ const RiwayatPembayaran: React.FC = () => {
       const allPayments = await Promise.all(
         relevantStudents.map(async (student) => {
           const payments = await db.getPaymentsByStudentNisn(student.nisn);
+          console.log(`🔍 Raw payments for student ${student.nisn}:`, payments);
           
-          return payments.filter(p => {
+          const filtered = payments.filter(p => {
             // Filter by payment type
             const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
             
@@ -94,10 +95,16 @@ const RiwayatPembayaran: React.FC = () => {
               matchesYear = paymentYear === selectedYear;
             }
             
+            console.log(`🔍 Payment "${p.jenis_pembayaran}": type="${selectedPaymentType}", matchesType=${matchesPaymentType}, matchesYear=${matchesYear}`);
             return matchesPaymentType && matchesYear;
           });
+          
+          console.log(`✅ Filtered payments for student ${student.nisn}:`, filtered);
+          return filtered;
         })
       );
+      
+      console.log('🎯 All filtered payments:', allPayments.flat());
 
       // Generate all class combinations
       const classes = [];
