@@ -382,7 +382,7 @@ const Keuangan: React.FC = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="bg-white rounded-lg shadow-lg">
+      <div className="bg-gray-100/80 rounded-lg shadow-lg">
     <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
@@ -398,7 +398,7 @@ const Keuangan: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* Left Sidebar - Payment Types */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-gray-50/80 rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-slate-800 text-white p-4">
                   <h3 className="font-bold">Jenis Pembayaran</h3>
                 </div>
@@ -423,7 +423,7 @@ const Keuangan: React.FC = () => {
 
             {/* Main Content Area */}
             <div className="lg:col-span-4">
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-gray-50/80 rounded-xl shadow-lg overflow-hidden">
                 <div className="bg-slate-800 text-white p-4">
                   <h3 className="font-bold">
                     {paymentTypes.find(t => t.id === selectedPaymentType)?.name || 'Pembayaran'}
@@ -571,7 +571,7 @@ const Keuangan: React.FC = () => {
 
                 {/* Payment Details Input Section */}
                 {selectedMonths.length > 0 && (
-                  <div className="mt-6 bg-white rounded-lg p-6 shadow-md">
+                  <div className="mt-6 bg-gray-50/80 rounded-lg p-6 shadow-md">
                     <h3 className="text-lg font-medium mb-4">Detail Pembayaran</h3>
                     <div className="space-y-4">
                       <div>

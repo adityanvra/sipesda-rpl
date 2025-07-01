@@ -105,7 +105,7 @@ const TambahSiswa: React.FC<TambahSiswaProps> = ({ onBack }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-gray-100/80 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b bg-gradient-to-r from-green-50 to-blue-50">
           <h2 className="text-xl font-bold text-gray-800">Form Tambah Siswa</h2>
           <p className="text-gray-600 text-sm mt-1">Lengkapi semua informasi siswa dengan benar</p>

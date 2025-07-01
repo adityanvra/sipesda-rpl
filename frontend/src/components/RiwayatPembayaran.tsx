@@ -659,7 +659,7 @@ const RiwayatPembayaran: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-gray-100/80 rounded-2xl shadow-lg overflow-hidden">
         {activeTab === 'rekap' ? (
           loading ? (
             <div className="p-20 flex justify-center">
@@ -703,7 +703,7 @@ const RiwayatPembayaran: React.FC = () => {
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div className="bg-blue-50 p-6 rounded-lg flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-2xl">👨</span>
+                    <span className="text-white text-2xl">👦</span>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Siswa Laki-laki</p>
@@ -712,7 +712,7 @@ const RiwayatPembayaran: React.FC = () => {
                 </div>
                 <div className="bg-pink-50 p-6 rounded-lg flex items-center space-x-4">
                   <div className="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center">
-                    <span className="text-white text-2xl">👩</span>
+                    <span className="text-white text-2xl">👧</span>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Siswa Perempuan</p>
@@ -722,7 +722,7 @@ const RiwayatPembayaran: React.FC = () => {
               </div>
 
               {/* Payment Summary */}
-              <div className="bg-white border rounded-lg mb-6">
+              <div className="bg-gray-50/80 border rounded-lg mb-6">
                 <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
                   <h3 className="font-bold">Rekap Total Dana {selectedPaymentType}</h3>
                   <button
@@ -779,7 +779,7 @@ const RiwayatPembayaran: React.FC = () => {
                   }
 
                   return (
-                    <div key={grade} className="bg-white border rounded-lg">
+                    <div key={grade} className="bg-gray-50/80 border rounded-lg">
                       <div className="bg-slate-800 text-white p-4">
                         <h3 className="font-bold">Kelas {grade}</h3>
                       </div>

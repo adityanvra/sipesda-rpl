@@ -138,7 +138,7 @@ const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Payment Types */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-gray-100/80 rounded-xl shadow-lg overflow-hidden">
           <div className="bg-slate-800 text-white p-4">
             <h3 className="font-bold">Jenis Pembayaran</h3>
           </div>
@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
         {/* Payment Periods and Announcement */}
         <div className="space-y-6">
           {/* Payment Periods */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-gray-100/80 rounded-xl shadow-lg overflow-hidden">
             <div className="bg-slate-800 text-white p-4">
               <h3 className="font-bold">Periode Pembayaran Bulan Ini</h3>
             </div>
@@ -183,7 +183,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Announcement */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-gray-100/80 rounded-xl shadow-lg overflow-hidden">
             <div className="bg-slate-800 text-white p-4">
               <h3 className="font-bold">PENGUMUMAN</h3>
             </div>

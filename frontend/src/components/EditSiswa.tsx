@@ -138,7 +138,7 @@ const EditSiswa: React.FC<EditSiswaProps> = ({ studentId, onBack }) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-gray-100/80 rounded-2xl shadow-lg overflow-hidden">
         <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-purple-50">
           <h2 className="text-xl font-bold text-gray-800">Form Edit Siswa</h2>
           <p className="text-gray-600 text-sm mt-1">
