@@ -31,6 +31,8 @@ app.use(bodyParser.json());
 // Debug CORS
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  // Additional debug for CORS issues - v2
+  console.log('CORS Headers:', req.headers);
   next();
 });
 
