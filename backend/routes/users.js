@@ -17,8 +17,16 @@ router.post('/login', async (req, res) => {
     
     const user = results[0];
     
-    // Compare password with bcrypt
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    // Check if password starts with $2b (bcrypt hash) or plain text
+    let isValidPassword = false;
+    
+    if (user.password.startsWith('$2b')) {
+      // Use bcrypt for hashed passwords
+      isValidPassword = await bcrypt.compare(password, user.password);
+    } else {
+      // Direct comparison for plain text passwords
+      isValidPassword = (password === user.password);
+    }
     
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Username atau password salah' });
