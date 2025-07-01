@@ -9,23 +9,30 @@ const paymentTypes = require('../routes/paymentTypes');
 
 const app = express();
 
-// CORS configuration for production  
+// CORS configuration - Allow frontend domains
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [
-        'https://sipesda-rpl-fe.vercel.app',
-        'https://sipesda-rpl-fe-git-main.vercel.app',
-        'https://sipesda-rpl-fe-git-main-adityanvra.vercel.app',
-        'https://sipesda-rpl-fe-adityanvra.vercel.app'
-      ]
-    : ['http://localhost:5173', 'http://localhost:3000'],
+  origin: [
+    'https://sipesda-rpl-fe.vercel.app',
+    'https://sipesda-rpl-fe-git-main.vercel.app', 
+    'https://sipesda-rpl-fe-git-main-adityanvra.vercel.app',
+    'https://sipesda-rpl-fe-adityanvra.vercel.app',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
+
+// Debug CORS
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  next();
+});
 
 // Routes
 app.use('/api/users', users);
