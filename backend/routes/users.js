@@ -1,41 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 const db = require('../db');
 
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    
-    // Get user by username only
-    const sql = 'SELECT * FROM users WHERE username = ?';
-    const [results] = await db.execute(sql, [username]);
+    const sql = 'SELECT * FROM users WHERE username = ? AND password = ?';
+    const [results] = await db.execute(sql, [username, password]);
     
     if (results.length === 0) {
-      return res.status(401).json({ message: 'Username atau password salah' });
+      return res.status(401).json({ message: 'User tidak ditemukan' });
     }
     
-    const user = results[0];
-    
-    // Check if password starts with $2b (bcrypt hash) or plain text
-    let isValidPassword = false;
-    
-    if (user.password.startsWith('$2b')) {
-      // Use bcrypt for hashed passwords
-      isValidPassword = await bcrypt.compare(password, user.password);
-    } else {
-      // Direct comparison for plain text passwords
-      isValidPassword = (password === user.password);
-    }
-    
-    if (!isValidPassword) {
-      return res.status(401).json({ message: 'Username atau password salah' });
-    }
-    
-    // Remove password from response
-    const { password: _, ...userWithoutPassword } = user;
-    res.json(userWithoutPassword);
-    
+    res.json(results[0]);
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
