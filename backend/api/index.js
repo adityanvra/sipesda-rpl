@@ -11,18 +11,31 @@ const app = express();
 
 // CORS configuration - Allow frontend domains
 const corsOptions = {
-  origin: [
-    'https://sipesda-rpl-fe.vercel.app',
-    'https://sipesda-rpl-fe-git-main.vercel.app', 
-    'https://sipesda-rpl-fe-git-main-adityanvra.vercel.app',
-    'https://sipesda-rpl-fe-adityanvra.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'https://sipesda-rpl-fe.vercel.app',
+      'https://sipesda-rpl-fe-git-main.vercel.app', 
+      'https://sipesda-rpl-fe-git-main-adityanvra.vercel.app',
+      'https://sipesda-rpl-fe-adityanvra.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 app.use(cors(corsOptions));
