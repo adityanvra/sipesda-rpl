@@ -202,7 +202,7 @@ const ManajemenSiswa: React.FC<ManajemenSiswaProps> = ({
       {/* Statistics Cards */}
       <div className="grid grid-cols-4 gap-6 mb-8">
         {/* Total Students Card */}
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF0000] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Total Siswa</p>
@@ -215,7 +215,7 @@ const ManajemenSiswa: React.FC<ManajemenSiswaProps> = ({
         </div>
 
         {/* Male Students Card */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF4141] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Siswa Laki-laki</p>
@@ -228,7 +228,7 @@ const ManajemenSiswa: React.FC<ManajemenSiswaProps> = ({
         </div>
 
         {/* Female Students Card */}
-        <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF7777] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Siswa Perempuan</p>
@@ -243,7 +243,7 @@ const ManajemenSiswa: React.FC<ManajemenSiswaProps> = ({
         </div>
 
         {/* Total Classes Card */}
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF9090] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Total Kelas</p>
