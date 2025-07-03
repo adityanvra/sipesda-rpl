@@ -70,12 +70,12 @@ function App() {
         {/* Sidebar */}
         <div className="w-64 min-h-screen shadow-2xl flex flex-col">
           {/* Bagian Atas (Judul + User Info) */}
-          <div className="bg-slate-800">
-            <div className="p-6 border-b border-slate-700 flex justify-center">
+          <div className="bg-[#1A1A1A]">
+            <div className="p-6 border-b border-gray-800 flex justify-center">
               <h1 className="text-white text-4xl font-bold">S I P E S D A</h1>
             </div>
 
-            <div className="p-6 border-b border-slate-700">
+            <div className="p-6 border-b border-gray-800">
               <div className="flex items-center space-x-3">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center">
                   <img src={iconUser} alt="User" className="w-12 h-12" />
@@ -84,14 +84,14 @@ function App() {
                   <p className="text-white font-medium">
                     {user.role === "admin" ? "Administrator" : "Operator"}
                   </p>
-                  <p className="text-slate-300 text-sm">{user.username}</p>
+                  <p className="text-gray-300 text-sm">{user.username}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Bagian Menu + Logout */}
-          <div className="bg-white flex-1 flex flex-col justify-between">
+          <div className="bg-[#1A1A1A] flex-1 flex flex-col justify-between">
             {/* Menu Navigasi */}
             <nav className="p-4">
               <ul className="space-y-2">
@@ -100,8 +100,8 @@ function App() {
                     onClick={() => setCurrentPage("dashboard")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "dashboard"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-800 hover:bg-blue-100 hover:text-slate-900"
+                        ? "bg-[#0D6EFD] text-white"
+                        : "text-white hover:bg-gray-700 hover:text-white"
                     }`}
                   >
                     <img
@@ -117,8 +117,8 @@ function App() {
                     onClick={() => setCurrentPage("keuangan")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "keuangan"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-800 hover:bg-blue-100 hover:text-slate-900"
+                        ? "bg-[#0D6EFD] text-white"
+                        : "text-white hover:bg-gray-700 hover:text-white"
                     }`}
                   >
                     <img
@@ -134,8 +134,8 @@ function App() {
                     onClick={() => setCurrentPage("riwayat")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "riwayat"
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-800 hover:bg-blue-100 hover:text-slate-900"
+                        ? "bg-[#0D6EFD] text-white"
+                        : "text-white hover:bg-gray-700 hover:text-white"
                     }`}
                   >
                     <img src={iconHistory} alt="Riwayat" className="w-5 h-5" />
@@ -149,8 +149,8 @@ function App() {
                       ["manajemen", "tambah-siswa", "edit-siswa"].includes(
                         currentPage
                       )
-                        ? "bg-blue-600 text-white"
-                        : "text-gray-800 hover:bg-blue-100 hover:text-slate-900"
+                        ? "bg-[#0D6EFD] text-white"
+                        : "text-white hover:bg-gray-700 hover:text-white"
                     }`}
                   >
                     <img src={iconStudents} alt="Siswa" className="w-5 h-5" />
@@ -161,13 +161,12 @@ function App() {
             </nav>
 
             {/* Tombol Logout */}
-            <div className="border-t border-gray-300 px-4 py-6">
+            <div className="border-t border-gray-800 px-4 py-6">
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-2 px-4 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
               >
                 <img src={iconLogout} alt="Logout" className="w-5 h-5" />
-
                 <span className="font-bold">Keluar</span>
               </button>
             </div>
