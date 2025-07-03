@@ -121,13 +121,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </button> */}
           </div>
         </form>
-
-        {/* Demo Credentials */}
-        <div className="mt-6 p-4 bg-white/10 rounded-lg">
-          <p className="text-white/80 text-xs mb-2">Demo Login:</p>
-          <p className="text-white/70 text-xs">Admin: admin / admin123</p>
-          <p className="text-white/70 text-xs">Operator: operator / operator123</p>
-        </div>
       </div>
     </div>
   );
