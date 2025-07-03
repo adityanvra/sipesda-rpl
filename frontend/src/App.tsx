@@ -70,12 +70,12 @@ function App() {
         {/* Sidebar */}
         <div className="w-64 min-h-screen shadow-2xl flex flex-col">
           {/* Bagian Atas (Judul + User Info) */}
-          <div className="bg-[#1A1A1A]">
-            <div className="p-6 border-b border-gray-800 flex justify-center">
+          <div className="bg-[#2D212B]">
+            <div className="p-6 border-b border-gray-700 flex justify-center">
               <h1 className="text-white text-4xl font-bold">S I P E S D A</h1>
             </div>
 
-            <div className="p-6 border-b border-gray-800">
+            <div className="p-6 border-b border-gray-700">
               <div className="flex items-center space-x-3">
                 <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center">
                   <img src={iconUser} alt="User" className="w-12 h-12" />
@@ -100,7 +100,7 @@ function App() {
                     onClick={() => setCurrentPage("dashboard")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "dashboard"
-                        ? "bg-gray-300 text-gray-800"
+                        ? "bg-gradient-to-r from-[#3B383A] to-[#B3C2D7] text-white"
                         : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
@@ -117,7 +117,7 @@ function App() {
                     onClick={() => setCurrentPage("keuangan")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "keuangan"
-                        ? "bg-gray-300 text-gray-800"
+                        ? "bg-gradient-to-r from-[#3B383A] to-[#B3C2D7] text-white"
                         : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
@@ -134,7 +134,7 @@ function App() {
                     onClick={() => setCurrentPage("riwayat")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "riwayat"
-                        ? "bg-gray-300 text-gray-800"
+                        ? "bg-gradient-to-r from-[#3B383A] to-[#B3C2D7] text-white"
                         : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
@@ -149,7 +149,7 @@ function App() {
                       ["manajemen", "tambah-siswa", "edit-siswa"].includes(
                         currentPage
                       )
-                        ? "bg-gray-300 text-gray-800"
+                        ? "bg-gradient-to-r from-[#3B383A] to-[#B3C2D7] text-white"
                         : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
