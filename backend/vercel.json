@@ -17,6 +17,11 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "DB_HOST": "switchyard.proxy.rlwy.net",
+    "DB_PORT": "24431",
+    "DB_USER": "root",
+    "DB_PASSWORD": "IvKYHCaiEJRWuzYYKbnlHUmzeBWQhFSN",
+    "DB_NAME": "railway"
   }
 } 

@@ -27,6 +27,46 @@ const corsOptions = {
   app.use(cors(corsOptions));
   app.use(bodyParser.json());
   
+  // Debug endpoint for checking environment and database
+  app.get('/api/debug', async (req, res) => {
+    try {
+      const db = require('../db');
+      
+      // Test database connection
+      const connection = await db.getConnection();
+      await connection.execute('SELECT 1 as test');
+      connection.release();
+      
+      res.json({
+        status: 'OK',
+        environment: {
+          NODE_ENV: process.env.NODE_ENV,
+          DB_HOST: process.env.DB_HOST ? '***set***' : 'NOT SET',
+          DB_USER: process.env.DB_USER ? '***set***' : 'NOT SET',
+          DB_PASSWORD: process.env.DB_PASSWORD ? '***set***' : 'NOT SET',
+          DB_NAME: process.env.DB_NAME ? '***set***' : 'NOT SET',
+          DB_PORT: process.env.DB_PORT || 'NOT SET'
+        },
+        database: 'Connected successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: 'ERROR',
+        environment: {
+          NODE_ENV: process.env.NODE_ENV,
+          DB_HOST: process.env.DB_HOST ? '***set***' : 'NOT SET',
+          DB_USER: process.env.DB_USER ? '***set***' : 'NOT SET',
+          DB_PASSWORD: process.env.DB_PASSWORD ? '***set***' : 'NOT SET',
+          DB_NAME: process.env.DB_NAME ? '***set***' : 'NOT SET',
+          DB_PORT: process.env.DB_PORT || 'NOT SET'
+        },
+        database_error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
   // Routes
   app.use('/api/users', users);
   app.use('/api/students', students);
