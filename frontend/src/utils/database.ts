@@ -7,7 +7,7 @@ class DatabaseManager {
   // USER
   async authenticateUser(username: string, password: string): Promise<User | null> {
     try {
-      const response = await axios.post(`${API_BASE_URL}/users/login`, { username, password });
+      const response = await axios.post(`${API_BASE_URL}/api/users/login`, { username, password });
       return response.data;
     } catch {
       return null;
@@ -16,7 +16,7 @@ class DatabaseManager {
 
   async createUser(username: string, password: string, role: string = 'operator'): Promise<boolean> {
     try {
-      await axios.post(`${API_BASE_URL}/users`, { username, password, role });
+      await axios.post(`${API_BASE_URL}/api/users`, { username, password, role });
       return true;
     } catch {
       return false;
@@ -25,13 +25,13 @@ class DatabaseManager {
 
   // STUDENT
   async getAllStudents(): Promise<Student[]> {
-    const response = await axios.get(`${API_BASE_URL}/students`);
+    const response = await axios.get(`${API_BASE_URL}/api/students`);
     return response.data;
   }
 
   async getStudentByNisn(nisn: string): Promise<Student | null> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/students/nisn/${nisn}`);
+      const response = await axios.get(`${API_BASE_URL}/api/students/nisn/${nisn}`);
       return response.data;
     } catch {
       return null;
@@ -40,7 +40,7 @@ class DatabaseManager {
 
   async getStudentById(id: number): Promise<Student | null> {
     try {
-      const response = await axios.get(`${API_BASE_URL}/students/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/api/students/${id}`);
       return response.data;
     } catch {
       return null;
@@ -49,7 +49,7 @@ class DatabaseManager {
 
   async createStudent(student: Omit<Student, 'id' | 'created_at' | 'updated_at'>): Promise<boolean> {
     try {
-      await axios.post(`${API_BASE_URL}/students`, student);
+      await axios.post(`${API_BASE_URL}/api/students`, student);
       return true;
     } catch {
       return false;
@@ -58,7 +58,7 @@ class DatabaseManager {
 
   async updateStudent(id: number, student: Partial<Student>): Promise<boolean> {
     try {
-      await axios.put(`${API_BASE_URL}/students/${id}`, student);
+      await axios.put(`${API_BASE_URL}/api/students/${id}`, student);
       return true;
     } catch {
       return false;
@@ -67,7 +67,7 @@ class DatabaseManager {
 
   async deleteStudent(id: number): Promise<boolean> {
     try {
-      await axios.delete(`${API_BASE_URL}/students/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/students/${id}`);
       return true;
     } catch {
       return false;
@@ -76,18 +76,18 @@ class DatabaseManager {
 
   // PAYMENT
   async getPaymentsByStudentId(studentId: number): Promise<Payment[]> {
-    const response = await axios.get(`${API_BASE_URL}/payments?student_id=${studentId}`);
+    const response = await axios.get(`${API_BASE_URL}/api/payments?student_id=${studentId}`);
     return response.data;
   }
 
   async getPaymentsByStudentNisn(nisn: string): Promise<Payment[]> {
-    const response = await axios.get(`${API_BASE_URL}/payments?student_nisn=${nisn}`);
+    const response = await axios.get(`${API_BASE_URL}/api/payments?student_nisn=${nisn}`);
     return response.data;
   }
 
   async createPayment(payment: Omit<Payment, 'id' | 'created_at'>): Promise<boolean> {
     try {
-      await axios.post(`${API_BASE_URL}/payments`, payment);
+      await axios.post(`${API_BASE_URL}/api/payments`, payment);
       return true;
     } catch {
       return false;
@@ -96,7 +96,7 @@ class DatabaseManager {
 
   async updatePayment(id: number, updates: Partial<Payment>): Promise<boolean> {
     try {
-      await axios.put(`${API_BASE_URL}/payments/${id}`, updates);
+      await axios.put(`${API_BASE_URL}/api/payments/${id}`, updates);
       return true;
     } catch {
       return false;
@@ -105,7 +105,7 @@ class DatabaseManager {
 
   async deletePayment(id: number): Promise<boolean> {
     try {
-      await axios.delete(`${API_BASE_URL}/payments/${id}`);
+      await axios.delete(`${API_BASE_URL}/api/payments/${id}`);
       return true;
     } catch {
       return false;
@@ -114,13 +114,13 @@ class DatabaseManager {
 
   // PAYMENT TYPE
   async getPaymentTypes(): Promise<PaymentType[]> {
-    const response = await axios.get(`${API_BASE_URL}/payment-types`);
+    const response = await axios.get(`${API_BASE_URL}/api/payment-types`);
     return response.data;
   }
 
   async addPaymentType(type: Omit<PaymentType, 'id'>): Promise<boolean> {
     try {
-      await axios.post(`${API_BASE_URL}/payment-types`, type);
+      await axios.post(`${API_BASE_URL}/api/payment-types`, type);
       return true;
     } catch {
       return false;
@@ -128,7 +128,7 @@ class DatabaseManager {
   }
   async getPaymentsByMonth(studentId: number, month: string, year: string): Promise<Payment[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/payments/by-month`, {
+    const response = await axios.get(`${API_BASE_URL}/api/payments/by-month`, {
       params: { studentId, month, year }
     });
     return response.data;
@@ -140,7 +140,7 @@ class DatabaseManager {
 
   async getPaymentsByMonthNisn(studentNisn: string, month: string, year: string): Promise<Payment[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/payments/by-month`, {
+    const response = await axios.get(`${API_BASE_URL}/api/payments/by-month`, {
       params: { studentNisn, month, year }
     });
     return response.data;
