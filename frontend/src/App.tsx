@@ -91,7 +91,7 @@ function App() {
           </div>
 
           {/* Bagian Menu + Logout */}
-          <div className="bg-[#1A1A1A] flex-1 flex flex-col justify-between">
+          <div className="bg-white flex-1 flex flex-col justify-between">
             {/* Menu Navigasi */}
             <nav className="p-4">
               <ul className="space-y-2">
@@ -100,8 +100,8 @@ function App() {
                     onClick={() => setCurrentPage("dashboard")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "dashboard"
-                        ? "bg-[#0D6EFD] text-white"
-                        : "text-white hover:bg-gray-700 hover:text-white"
+                        ? "bg-gray-300 text-gray-800"
+                        : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
                     <img
@@ -117,8 +117,8 @@ function App() {
                     onClick={() => setCurrentPage("keuangan")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "keuangan"
-                        ? "bg-[#0D6EFD] text-white"
-                        : "text-white hover:bg-gray-700 hover:text-white"
+                        ? "bg-gray-300 text-gray-800"
+                        : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
                     <img
@@ -134,8 +134,8 @@ function App() {
                     onClick={() => setCurrentPage("riwayat")}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition-colors ${
                       currentPage === "riwayat"
-                        ? "bg-[#0D6EFD] text-white"
-                        : "text-white hover:bg-gray-700 hover:text-white"
+                        ? "bg-gray-300 text-gray-800"
+                        : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
                     <img src={iconHistory} alt="Riwayat" className="w-5 h-5" />
@@ -149,8 +149,8 @@ function App() {
                       ["manajemen", "tambah-siswa", "edit-siswa"].includes(
                         currentPage
                       )
-                        ? "bg-[#0D6EFD] text-white"
-                        : "text-white hover:bg-gray-700 hover:text-white"
+                        ? "bg-gray-300 text-gray-800"
+                        : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
                     <img src={iconStudents} alt="Siswa" className="w-5 h-5" />
@@ -161,7 +161,7 @@ function App() {
             </nav>
 
             {/* Tombol Logout */}
-            <div className="border-t border-gray-800 px-4 py-6">
+            <div className="border-t border-gray-200 px-4 py-6">
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center space-x-2 px-4 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
