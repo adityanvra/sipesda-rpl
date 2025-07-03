@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-gradient-to-r from-[#3B383A] to-[#B3C2D7] rounded-lg flex items-center justify-center">
             <span className="text-white text-xl">📊</span>
           </div>
           <h1 className="text-2xl font-bold text-white">Dashboard</h1>
@@ -59,7 +59,7 @@ const Dashboard: React.FC = () => {
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
         {/* School Card */}
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF0000] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
               <span className="text-2xl">🏫</span>
@@ -71,7 +71,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Kepala Sekolah Card */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF3A3A] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
               <span className="text-2xl">👩‍💼</span>
@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Staff Count */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lga">
+        <div className="bg-[#FF6464] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
               <span className="text-2xl">👥</span>
@@ -97,7 +97,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Total Students */}
-        <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-gradient-to-br from-[#FF5555] to-[#FF6464] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
               <span className="text-2xl">👨‍👧‍👦</span>
@@ -110,7 +110,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Male Students */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF7777] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
               <span className="text-2xl">👨‍🎓</span>
@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Female Students */}
-        <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl p-6 text-white shadow-lg">
+        <div className="bg-[#FF9090] rounded-xl p-6 text-white shadow-lg">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white bg-opacity-30 rounded-full flex items-center justify-center">
               <span className="text-2xl">👩‍🎓</span>
