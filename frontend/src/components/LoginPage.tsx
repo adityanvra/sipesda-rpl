@@ -65,7 +65,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           {/* Username Field */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-400">👤</span>
+              <span className="text-gray-400">username.png</span>
             </div>
             <input
               type="text"
@@ -80,7 +80,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           {/* Password Field */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="text-gray-400">🔑</span>
+              <span className="text-gray-400">password.png</span>
             </div>
             <input
               type="password"
@@ -96,7 +96,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           <button
             type="submit"
             disabled={loading || !db}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gradient-to-r from-[#75456C] to-[#75456C] text-white py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Masuk...' : 'Login'}
           </button>

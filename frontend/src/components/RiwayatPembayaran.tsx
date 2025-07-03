@@ -881,7 +881,7 @@ const RiwayatPembayaran: React.FC = () => {
                   <div className="border border-t-0 rounded-b-lg p-6">
                     <div className="flex justify-center mb-6">
                       <div className="w-24 h-24 bg-pink-200 rounded-full flex items-center justify-center">
-                        <span className="text-4xl">{student.jenis_kelamin === 'L' ? '👨' : '👩'}</span>
+                        <span className="text-4xl">{student.jenis_kelamin === 'L' ? 'laki-laki.png' : 'perempuan.png'}</span>
                       </div>
                     </div>
                     <div className="space-y-4">

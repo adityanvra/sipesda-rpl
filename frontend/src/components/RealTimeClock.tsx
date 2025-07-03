@@ -32,7 +32,7 @@ const RealTimeClock: React.FC = () => {
   };
 
   return (
-    <div className="bg-green-500 text-white px-4 py-2 rounded-lg font-medium">
+    <div className="#E05153 text-white px-4 py-2 rounded-lg font-medium">
       {formatDate(dateTime)}
     </div>
   );
