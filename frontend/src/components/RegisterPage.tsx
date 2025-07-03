@@ -60,14 +60,14 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onRegister, onBackToLogin }
 
   if (isDbLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#226398] via-[#012246] to-[#254E70] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#65465F] to-[#6C7278] flex items-center justify-center p-4">
         <div className="text-white">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#226398] via-[#012246] to-[#254E70] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#65465F] to-[#6C7278] flex items-center justify-center p-4">
       <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 w-full max-w-md shadow-2xl border border-white/20">
         {/* Logo */}
         <div className="text-center mb-8">

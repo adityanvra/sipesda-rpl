@@ -65,7 +65,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#226398] via-[#012246] to-[#254E70]">
+    <div className="min-h-screen bg-gradient-to-br from-[#65465F] to-[#6C7278]">
       <div className="flex">
         {/* Sidebar */}
         <div className="w-64 min-h-screen shadow-2xl flex flex-col">
