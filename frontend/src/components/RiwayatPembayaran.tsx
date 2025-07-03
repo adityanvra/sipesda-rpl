@@ -3,8 +3,6 @@ import { Student, Payment } from '../types';
 import { useDatabaseContext } from '../contexts/DatabaseContext';
 import RealTimeClock from './RealTimeClock';
 import * as XLSX from 'xlsx';
-import boyIcon from '../assets/icons/boy.png';
-import girlIcon from '../assets/icons/girl.png';
 
 interface ClassSummary {
   className: string;
@@ -25,12 +23,19 @@ interface PaymentSummary {
 
 const RiwayatPembayaran: React.FC = () => {
   const { db, isLoading: isDbLoading } = useDatabaseContext();
-  const [activeTab, setActiveTab] = useState<'keseluruhan' | 'siswa'>('keseluruhan');
-  const [loading, setLoading] = useState(false);
-  const [selectedPaymentType, setSelectedPaymentType] = useState('SPP Bulanan');
-  const [selectedAngkatan, setSelectedAngkatan] = useState('');
   const [searchNisn, setSearchNisn] = useState('');
   const [student, setStudent] = useState<Student | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'rekap' | 'siswa'>('rekap');
+  const [selectedPaymentType, setSelectedPaymentType] = useState('SPP Bulanan');
+  const [selectedYear, setSelectedYear] = useState('2024');
+  const [paymentSummary, setPaymentSummary] = useState<PaymentSummary>({
+    maleStudents: 0,
+    femaleStudents: 0,
+    totalPaid: 0,
+    totalUnpaid: 0,
+    classSummaries: []
+  });
   const [studentPayments, setStudentPayments] = useState<{
     spp: Payment[];
     other: Payment[];
@@ -40,39 +45,160 @@ const RiwayatPembayaran: React.FC = () => {
   });
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 
-  // Dummy data for gender stats based on the image
-  const [genderStats, setGenderStats] = useState({
-    maleStudents: 0,
-    femaleStudents: 0
-  });
+  const paymentTypes = [
+    'SPP Bulanan',
+    'Buku LKS',
+    'Seragam',
+    'Ekstrakulikuler',
+    'Kegiatan'
+  ];
 
-  const [paymentData, setPaymentData] = useState({
-    paidAmount: 0,
-    unpaidAmount: 0
-  });
+  const years = ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019'];
 
-  // Load data on component mount
   useEffect(() => {
-    loadData();
-  }, [db, selectedPaymentType, selectedAngkatan]);
+    loadSummaryData();
+  }, [db, selectedPaymentType, selectedYear]);
 
-  const loadData = async () => {
+  const loadSummaryData = async () => {
     if (!db) return;
     
     try {
       setLoading(true);
-      // In a real implementation, this would fetch actual data from the database
-      setGenderStats({
-        maleStudents: 0,
-        femaleStudents: 0
-      });
       
-      setPaymentData({
-        paidAmount: 0,
-        unpaidAmount: 0
+      // Get all students
+      const students = await db.getAllStudents();
+      
+      // For all payment types including SPP Bulanan, filter by selected year
+      const relevantStudents = students.filter(s => s.angkatan === selectedYear);
+      
+      // Filter students by selected year for statistics
+      const yearStudents = students.filter(s => s.angkatan === selectedYear);
+      
+      // Calculate gender statistics for the selected year
+      const maleStudents = yearStudents.filter(s => s.jenis_kelamin === 'L').length;
+      const femaleStudents = yearStudents.filter(s => s.jenis_kelamin === 'P').length;
+
+      // Get all payments for selected type and year
+      const allPayments = await Promise.all(
+        relevantStudents.map(async (student) => {
+          const payments = await db.getPaymentsByStudentNisn(student.nisn);
+          
+          const filtered = payments.filter(p => {
+            // Filter by payment type
+            const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
+            
+            // For SPP Bulanan, don't filter by payment year since students can pay SPP in any year
+            // For other payment types, filter by the selected year
+            let matchesYear = true;
+            if (selectedPaymentType !== 'SPP Bulanan') {
+              const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
+              matchesYear = paymentYear === selectedYear;
+            }
+            
+            return matchesPaymentType && matchesYear;
+          });
+          
+          return filtered;
+        })
+      );
+
+      // Generate all class combinations
+      const classes = [];
+      for (let grade = 1; grade <= 6; grade++) {
+        for (let section of ['A', 'B', 'C', 'D']) {
+          classes.push(`${grade}${section}`);
+        }
+      }
+
+      // Calculate class summaries
+      const classSummaries = await Promise.all(
+        classes.map(async (className) => {
+          // Only show students from selected year for all payment types
+          const classStudents = yearStudents.filter(s => s.kelas === className);
+            
+          const classPayments = await Promise.all(
+            classStudents.map(async (student) => {
+              const payments = await db.getPaymentsByStudentNisn(student.nisn);
+              const relevantPayments = payments.filter(p => {
+                // Filter by payment type
+                const matchesPaymentType = p.jenis_pembayaran.startsWith(selectedPaymentType.split(' ')[0]);
+                
+                // For SPP Bulanan, don't filter by payment year since students can pay SPP in any year
+                // For other payment types, filter by the selected year
+                let matchesYear = true;
+                if (selectedPaymentType !== 'SPP Bulanan') {
+                  const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
+                  matchesYear = paymentYear === selectedYear;
+                }
+                
+                return matchesPaymentType && matchesYear;
+              });
+              return {
+                hasPaid: relevantPayments.length > 0,
+                amount: relevantPayments.reduce((sum, p) => sum + parseFloat(String(p.nominal || 0)), 0)
+              };
+            })
+          );
+
+          const paidStudents = classPayments.filter(p => p.hasPaid).length;
+          const totalPaid = classPayments.reduce((sum, p) => {
+            const amount = p.amount || 0;  // Use 'amount' which is already calculated above
+            return sum + (isNaN(amount) ? 0 : amount);
+          }, 0);
+          
+          // Calculate expected amount based on payment type for non-SPP payments
+          let totalUnpaid = 0;
+          if (selectedPaymentType !== 'SPP Bulanan') {
+            let expectedAmount = 0;
+            if (selectedPaymentType === 'Buku LKS') {
+            expectedAmount = classStudents.length * 250000; // 250000 per student
+          } else if (selectedPaymentType === 'Seragam') {
+            expectedAmount = classStudents.length * 300000; // 300000 per student
+          } else if (selectedPaymentType === 'Ekstrakulikuler') {
+            expectedAmount = classStudents.length * 150000; // 150000 per student
+          } else if (selectedPaymentType === 'Kegiatan') {
+            expectedAmount = classStudents.length * 200000; // 200000 per student
+            }
+            totalUnpaid = Math.max(0, expectedAmount - totalPaid);
+          } else {
+            // For SPP Bulanan, calculate expected amount based on monthly SPP fee
+            // Assuming SPP is 100,000 per month and we're calculating for the selected year (12 months)
+            const expectedSPPPerStudentPerYear = 100000 * 12; // 1,200,000 per student per year
+            const expectedAmount = classStudents.length * expectedSPPPerStudentPerYear;
+            totalUnpaid = Math.max(0, expectedAmount - totalPaid); // Ensure non-negative
+          }
+
+          return {
+            className,
+            totalStudents: classStudents.length,
+            paidStudents,
+            unpaidStudents: classStudents.length - paidStudents,
+            totalPaid,
+            totalUnpaid
+          };
+        })
+      );
+
+      // Calculate total statistics
+      const totalPaid = classSummaries.reduce((sum, c) => {
+        const amount = c.totalPaid || 0;
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
+      const totalUnpaid = classSummaries.reduce((sum, c) => {
+        const amount = c.totalUnpaid || 0;
+        return sum + (isNaN(amount) ? 0 : amount);
+      }, 0);
+
+      setPaymentSummary({
+        maleStudents,
+        femaleStudents,
+        totalPaid,
+        totalUnpaid,
+        classSummaries
       });
+
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Error loading summary data:', error);
     } finally {
       setLoading(false);
     }
@@ -354,7 +480,7 @@ const RiwayatPembayaran: React.FC = () => {
       // Sheet 1: Summary Overview
       const summaryData = [
         ['REKAP PEMBAYARAN ' + selectedPaymentType.toUpperCase()],
-        ['Angkatan: ' + selectedAngkatan],
+        ['Angkatan: ' + selectedYear],
         ['Tanggal Export: ' + new Date().toLocaleDateString('id-ID')],
         [],
         ['RINGKASAN'],
@@ -388,12 +514,12 @@ const RiwayatPembayaran: React.FC = () => {
       
       // Sheet 2: Detailed Student Payments
       const students = await db.getAllStudents();
-      const relevantStudents = students.filter(s => s.angkatan === selectedAngkatan);
+      const relevantStudents = students.filter(s => s.angkatan === selectedYear);
       
       const detailData = [
         ['DETAIL PEMBAYARAN SISWA'],
         ['Jenis Pembayaran: ' + selectedPaymentType],
-        ['Angkatan: ' + selectedAngkatan],
+        ['Angkatan: ' + selectedYear],
         [],
         ['NISN', 'Nama Siswa', 'Kelas', 'Jenis Kelamin', 'Status Pembayaran', 'Total Dibayar', 'Tanggal Pembayaran Terakhir', 'Petugas']
       ];
@@ -405,7 +531,7 @@ const RiwayatPembayaran: React.FC = () => {
           let matchesYear = true;
           if (selectedPaymentType !== 'SPP Bulanan') {
             const paymentYear = new Date(p.tanggal_pembayaran).getFullYear().toString();
-            matchesYear = paymentYear === selectedAngkatan;
+            matchesYear = paymentYear === selectedYear;
           }
           return matchesPaymentType && matchesYear;
         });
@@ -432,7 +558,7 @@ const RiwayatPembayaran: React.FC = () => {
       if (selectedPaymentType === 'SPP Bulanan') {
         const sppHistoryData = [
           ['RIWAYAT PEMBAYARAN SPP DETAIL'],
-          ['Angkatan: ' + selectedAngkatan],
+          ['Angkatan: ' + selectedYear],
           [],
           ['NISN', 'Nama Siswa', 'Kelas', 'Bulan/Tahun SPP', 'Nominal', 'Tanggal Bayar', 'Status', 'Petugas', 'Keterangan']
         ];
@@ -475,7 +601,7 @@ const RiwayatPembayaran: React.FC = () => {
       }
       
       // Generate filename
-      const fileName = `Rekap_${selectedPaymentType.replace(' ', '_')}_Angkatan_${selectedAngkatan}_${new Date().toISOString().split('T')[0]}.xlsx`;
+      const fileName = `Rekap_${selectedPaymentType.replace(' ', '_')}_Angkatan_${selectedYear}_${new Date().toISOString().split('T')[0]}.xlsx`;
       
       // Write and download
       XLSX.writeFile(workbook, fileName);
@@ -508,116 +634,214 @@ const RiwayatPembayaran: React.FC = () => {
         <RealTimeClock />
       </div>
 
-      {/* Tab Navigation */}
-      <div className="bg-gray-800 rounded-t-lg overflow-hidden mb-0">
-        <div className="flex">
-          <button 
-            className={`px-8 py-3 font-medium ${activeTab === 'keseluruhan' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-300'}`}
-            onClick={() => setActiveTab('keseluruhan')}
-          >
-            Rekap Keseluruhan
-          </button>
-          <button 
-            className={`px-8 py-3 font-medium ${activeTab === 'siswa' ? 'bg-gray-900 text-white' : 'bg-transparent text-gray-300'}`}
-            onClick={() => setActiveTab('siswa')}
-          >
-            Rekap Siswa
-          </button>
-        </div>
+      {/* Navigation Tabs */}
+      <div className="bg-gray-100 rounded-lg p-2 mb-6">
+        <button
+          onClick={() => setActiveTab('rekap')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            activeTab === 'rekap'
+              ? 'bg-slate-800 text-white'
+              : 'text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Rekap Keseluruhan
+        </button>
+        <button
+          onClick={() => setActiveTab('siswa')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            activeTab === 'siswa'
+              ? 'bg-slate-800 text-white'
+              : 'text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          Rekap Siswa
+        </button>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-b-lg shadow-lg overflow-hidden p-6">
-        {activeTab === 'keseluruhan' ? (
-          <div>
-            {/* Payment Type and Angkatan Selection */}
-            <div className="flex justify-between mb-6">
-              <div className="w-1/2 pr-2">
-                <label className="block text-gray-700 font-medium mb-2">Jenis Pembayaran:</label>
-                <div className="relative">
-                  <select 
-                    className="w-full border border-gray-300 rounded-md py-2 pl-3 pr-10 appearance-none focus:outline-none"
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        {activeTab === 'rekap' ? (
+          loading ? (
+            <div className="p-20 flex justify-center">
+              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="p-6">
+              {/* Payment Type and Year Selection */}
+              <div className="flex gap-4 mb-6">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Jenis Pembayaran:
+                  </label>
+                  <select
                     value={selectedPaymentType}
                     onChange={(e) => setSelectedPaymentType(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option>SPP Bulanan</option>
+                    {paymentTypes.map(type => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
                   </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="h-4 w-4 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                      <path d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Angkatan:
+                  </label>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {years.map(year => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
-              <div className="w-1/2 pl-2">
-                <label className="block text-gray-700 font-medium mb-2">Angkatan:</label>
-                <div className="relative">
-                  <select 
-                    className="w-full border border-gray-300 rounded-md py-2 pl-3 pr-10 appearance-none focus:outline-none"
-                    value={selectedAngkatan}
-                    onChange={(e) => setSelectedAngkatan(e.target.value)}
-                  >
-                    <option value=""></option>
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg className="h-4 w-4 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
-                      <path d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Gender Stats Cards */}
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-blue-100 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="mr-4">
-                    <img src={boyIcon} alt="Laki-laki" className="w-12 h-12" />
+              {/* Student Statistics */}
+              <div className="grid grid-cols-2 gap-6 mb-6">
+                <div className="bg-blue-50 p-6 rounded-lg flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-2xl">👨</span>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Siswa Laki-laki</p>
-                    <p className="text-xl font-bold">{genderStats.maleStudents}</p>
+                    <p className="text-2xl font-bold">{paymentSummary.maleStudents}</p>
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-pink-100 rounded-lg p-4">
-                <div className="flex items-center">
-                  <div className="mr-4">
-                    <img src={girlIcon} alt="Perempuan" className="w-12 h-12" />
+                <div className="bg-pink-50 p-6 rounded-lg flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-pink-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-2xl">👩</span>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Siswa Perempuan</p>
-                    <p className="text-xl font-bold">{genderStats.femaleStudents}</p>
+                    <p className="text-2xl font-bold">{paymentSummary.femaleStudents}</p>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* Payment Data Section */}
-            <div className="bg-white border rounded-lg">
-              <div className="bg-gray-800 text-white p-4">
-                <h3 className="font-medium">Rekap Total Dana Keseluruhan</h3>
+              {/* Payment Summary */}
+              <div className="bg-white border rounded-lg mb-6">
+                <div className="bg-slate-800 text-white p-4 flex justify-between items-center">
+                  <h3 className="font-bold">Rekap Total Dana {selectedPaymentType}</h3>
+                  <button
+                    onClick={handleExportToExcel}
+                    disabled={loading || !paymentSummary}
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    📊 Export Excel
+                  </button>
+                </div>
+                <div className="p-6">
+                  {selectedPaymentType === 'SPP Bulanan' ? (
+                    // For SPP Bulanan, show total accumulated funds for selected year
+                    <>
+                    <div className="mb-4">
+                      <p className="font-medium">Total Dana SPP Bulanan Siswa Angkatan {selectedYear} yang sudah dibayarkan</p>
+                      <p className="text-2xl font-bold text-green-600">Rp {paymentSummary.totalPaid.toLocaleString()}</p>
+                    </div>
+                    <div className="mb-4">
+                      <p className="font-medium">Total Dana SPP Bulanan Siswa Angkatan {selectedYear} yang belum dibayarkan</p>
+                      <p className="text-2xl font-bold text-red-600">Rp {paymentSummary.totalUnpaid.toLocaleString()}</p>
+                    </div>
+                    <div className="text-sm text-gray-500 mt-2">
+                      <p>Total akumulasi dana SPP yang telah terkumpul dari pembayaran siswa angkatan {selectedYear} pada tahun {selectedYear}</p>
+                      <p className="mt-1">Perhitungan berdasarkan SPP Rp 100.000/bulan × 12 bulan = Rp 1.200.000/siswa/tahun</p>
+                    </div>
+                    </>
+                  ) : (
+                    // For other payment types, show paid vs unpaid
+                    <>
+                  <div className="mb-4">
+                    <p className="font-medium">Total Dana {selectedPaymentType} Siswa Angkatan {selectedYear} yang sudah dibayarkan</p>
+                    <p className="text-xl font-bold text-green-600">Rp {paymentSummary.totalPaid.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium">Total Dana {selectedPaymentType} Siswa Angkatan {selectedYear} yang belum dibayarkan</p>
+                    <p className="text-xl font-bold text-red-600">Rp {paymentSummary.totalUnpaid.toLocaleString()}</p>
+                  </div>
+                    </>
+                  )}
+                </div>
               </div>
 
-              <div className="p-4 space-y-4">
-                <div>
-                  <p className="font-medium mb-1">Total Dana SPP Bulanan Siswa Angkatan 2023 yang sudah dibayarkan</p>
-                  <p className="text-xl font-semibold text-green-600">Rp {paymentData.paidAmount.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="font-medium mb-1">Total Dana SPP Bulanan Siswa Angkatan 2023 yang belum dibayarkan</p>
-                  <p className="text-xl font-semibold text-red-600">Rp {paymentData.unpaidAmount.toLocaleString()}</p>
-                </div>
+              {/* Class Payment Status */}
+              <div className="space-y-6">
+                {/* Group classes by grade */}
+                {[1, 2, 3, 4, 5, 6].map((grade) => {
+                  const gradeClasses = paymentSummary.classSummaries
+                    .filter(summary => summary.className.startsWith(grade.toString()));
+                  
+                  // Only show grades that have classes with students
+                  if (gradeClasses.length === 0 || gradeClasses.every(c => c.totalStudents === 0)) {
+                    return null;
+                  }
+
+                  return (
+                    <div key={grade} className="bg-white border rounded-lg">
+                      <div className="bg-slate-800 text-white p-4">
+                        <h3 className="font-bold">Kelas {grade}</h3>
+                      </div>
+                      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {gradeClasses.map((summary) => (
+                          <div key={summary.className} className="bg-gray-50 p-4 rounded-lg">
+                            <div className="flex justify-between items-center mb-4">
+                              <h4 className="font-medium">Kelas {summary.className}</h4>
+                              <span className="text-sm text-gray-600">Total Siswa: {summary.totalStudents}</span>
+                            </div>
+                            <div className="space-y-4">
+                              <div>
+                                <div className="flex items-center justify-between text-sm mb-1">
+                                  <span>Siswa Lunas {selectedPaymentType}</span>
+                                  <span>{summary.paidStudents} Siswa</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-green-500 h-2 rounded-full"
+                                    style={{
+                                      width: `${summary.totalStudents ? (summary.paidStudents / summary.totalStudents) * 100 : 0}%`
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex items-center justify-between text-sm mb-1">
+                                  <span>Siswa Belum Lunas {selectedPaymentType}</span>
+                                  <span>{summary.unpaidStudents} Siswa</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div
+                                    className="bg-red-500 h-2 rounded-full"
+                                    style={{
+                                      width: `${summary.totalStudents ? (summary.unpaidStudents / summary.totalStudents) * 100 : 0}%`
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              {selectedPaymentType === 'SPP Bulanan' && (
+                                <div>
+                                  <div className="flex items-center justify-between text-sm mb-1">
+                                    <span>Total Dana SPP Terkumpul</span>
+                                    <span className="font-bold text-green-600">Rp {summary.totalPaid.toLocaleString()}</span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    Dana SPP angkatan {selectedYear} dari {summary.paidStudents} siswa yang telah melakukan pembayaran pada tahun {selectedYear}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          )
         ) : (
-          // Rekap Siswa tab
+          // Rekap Siswa Content
           <div>
             {/* Search Section */}
             <div className="p-6 border-b">
@@ -657,7 +881,7 @@ const RiwayatPembayaran: React.FC = () => {
                   <div className="border border-t-0 rounded-b-lg p-6">
                     <div className="flex justify-center mb-6">
                       <div className="w-24 h-24 bg-pink-200 rounded-full flex items-center justify-center">
-                        <span className="text-4xl">{student.jenis_kelamin === 'L' ? 'boy.png' : 'girl.png'}</span>
+                        <span className="text-4xl">{student.jenis_kelamin === 'L' ? '👨' : '👩'}</span>
                       </div>
                     </div>
                     <div className="space-y-4">
