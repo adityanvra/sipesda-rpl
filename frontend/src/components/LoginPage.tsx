@@ -45,14 +45,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#65465F] to-[#6C7278] flex items-center justify-center p-4">
-      <div className="bg-[rgba(255,255,255,0.15)] backdrop-blur-sm rounded-lg p-8 w-full max-w-sm shadow-xl">
-        {/* Logo & Title */}
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 mx-auto mb-3">
-            <img src="/image.png" alt="MI Logo" className="w-full h-full object-contain" />
+      <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-8 w-full max-w-md shadow-2xl border border-white/20">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="w-24 h-24 mx-auto mb-4">
+            <img src="/image.png" alt="SIPESDA Logo" className="w-full h-full object-contain" />
           </div>
-          <h2 className="text-white text-xl font-bold uppercase">SIPESDA</h2>
-          <p className="text-white/80 text-xs mt-1">Sistem Pembayaran Sekolah Dasar</p>
+          <h2 className="text-white text-2xl font-bold">SIPESDA</h2>
+          <p className="text-white/80 text-sm">Sistem Pembayaran Sekolah Dasar</p>
         </div>
 
         {error && (
@@ -61,47 +61,35 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Username Field */}
           <div className="relative">
-            <div className="flex items-center">
-              <img src="/username.png" alt="Username" className="w-5 h-5 mr-2" />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Username"
-                className="w-full px-3 py-2 bg-white/90 border border-gray-300 rounded-md focus:outline-none"
-                required
-              />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-400">👤</span>
             </div>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="w-full pl-10 pr-4 py-3 bg-white/90 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
+            />
           </div>
 
           {/* Password Field */}
           <div className="relative">
-            <div className="flex items-center">
-              <img src="/password.png" alt="Password" className="w-5 h-5 mr-2" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full px-3 py-2 bg-white/90 border border-gray-300 rounded-md focus:outline-none"
-                required
-              />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <span className="text-gray-400">🔑</span>
             </div>
-          </div>
-
-          {/* Remember Me */}
-          <div className="flex items-center mt-2">
             <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              id="rememberMe"
-              className="mr-2"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full pl-10 pr-4 py-3 bg-white/90 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              required
             />
-            <label htmlFor="rememberMe" className="text-white/80 text-xs">Ingat Saya</label>
           </div>
 
           {/* Login Button */}
@@ -112,11 +100,31 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           >
             Login
           </button>
+
+          {/* Remember Me & Forgot Password */}
+          <div className="flex items-center justify-between text-sm">
+            <label className="flex items-center text-white/80">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="mr-2 rounded"
+              />
+              Ingat Saya
+            </label>
+            {/* <button
+              type="button"
+              onClick={onRegister}
+              className="text-white/80 hover:text-white underline"
+            >
+              Daftar Akun
+            </button> */}
+          </div>
         </form>
 
         {/* Demo Credentials */}
-        <div className="mt-4 p-3 bg-white/10 rounded-md">
-          <p className="text-white/80 text-xs mb-1">Demo Login:</p>
+        <div className="mt-6 p-4 bg-white/10 rounded-lg">
+          <p className="text-white/80 text-xs mb-2">Demo Login:</p>
           <p className="text-white/70 text-xs">Admin: admin / admin123</p>
           <p className="text-white/70 text-xs">Operator: operator / operator123</p>
         </div>

@@ -3,6 +3,8 @@ import { Student, Payment } from '../types';
 import { useDatabaseContext } from '../contexts/DatabaseContext';
 import RealTimeClock from './RealTimeClock';
 import * as XLSX from 'xlsx';
+import boyIcon from '../assets/icons/boy.png';
+import girlIcon from '../assets/icons/girl.png';
 
 interface ClassSummary {
   className: string;
@@ -574,7 +576,7 @@ const RiwayatPembayaran: React.FC = () => {
               <div className="bg-blue-100 rounded-lg p-4">
                 <div className="flex items-center">
                   <div className="mr-4">
-                    <img src="/assets/laki.png" alt="Laki-laki" className="w-12 h-12" />
+                    <img src={boyIcon} alt="Laki-laki" className="w-12 h-12" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Siswa Laki-laki</p>
@@ -586,7 +588,7 @@ const RiwayatPembayaran: React.FC = () => {
               <div className="bg-pink-100 rounded-lg p-4">
                 <div className="flex items-center">
                   <div className="mr-4">
-                    <img src="/assets/perempuan.png" alt="Perempuan" className="w-12 h-12" />
+                    <img src={girlIcon} alt="Perempuan" className="w-12 h-12" />
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Total Siswa Perempuan</p>
@@ -655,7 +657,7 @@ const RiwayatPembayaran: React.FC = () => {
                   <div className="border border-t-0 rounded-b-lg p-6">
                     <div className="flex justify-center mb-6">
                       <div className="w-24 h-24 bg-pink-200 rounded-full flex items-center justify-center">
-                        <span className="text-4xl">{student.jenis_kelamin === 'L' ? 'laki-laki.png' : 'perempuan.png'}</span>
+                        <span className="text-4xl">{student.jenis_kelamin === 'L' ? 'boy.png' : 'girl.png'}</span>
                       </div>
                     </div>
                     <div className="space-y-4">
