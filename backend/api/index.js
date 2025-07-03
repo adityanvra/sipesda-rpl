@@ -14,6 +14,8 @@ const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [
         'https://sipesda-deploy.vercel.app', // Frontend URL yang sudah ada
+        'https://sipesda-rpl-fe.vercel.app', // Frontend URL yang baru
+        'https://sipesda-rpl-c573.vercel.app', // Frontend URL alternatif
         'https://sipesda-deploy-git-main.vercel.app',  // Alternative domain
         'https://sipesda-deploy-git-main-adityanvra.vercel.app' // Vercel branch URL
       ]

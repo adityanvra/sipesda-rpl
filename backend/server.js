@@ -12,9 +12,17 @@ const app = express();
 // CORS configuration for production
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://your-frontend-domain.vercel.app'] // Ganti dengan domain Vercel Anda
+    ? [
+        'https://sipesda-deploy.vercel.app', // Frontend URL yang sudah ada
+        'https://sipesda-rpl-fe.vercel.app', // Frontend URL yang baru
+        'https://sipesda-rpl-c573.vercel.app', // Frontend URL alternatif
+        'https://sipesda-deploy-git-main.vercel.app',
+        'https://sipesda-deploy-git-main-adityanvra.vercel.app'
+      ]
     : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 app.use(cors(corsOptions));
