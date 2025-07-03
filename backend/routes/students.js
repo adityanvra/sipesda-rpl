@@ -2,6 +2,35 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
+// Debug endpoint for students table
+router.get('/debug', async (req, res) => {
+  try {
+    // Check table structure
+    const [columns] = await db.execute('SHOW COLUMNS FROM students');
+    
+    // Check table data count
+    const [count] = await db.execute('SELECT COUNT(*) as total FROM students');
+    
+    // Sample data
+    const [sample] = await db.execute('SELECT * FROM students LIMIT 3');
+    
+    res.json({
+      status: 'OK',
+      table_structure: columns,
+      total_students: count[0].total,
+      sample_data: sample,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'ERROR',
+      error: error.message,
+      code: error.code,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 router.get('/', async (req, res) => {
   try {
     const [results] = await db.execute('SELECT * FROM students');
@@ -47,22 +76,59 @@ router.get('/nisn/:nisn', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const data = req.body;
-    const sql = `INSERT INTO students (nisn, nama, kelas, alamat, no_hp, nama_wali, jenis_kelamin, angkatan, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+    
+    // Validate required fields
+    if (!data.nisn || !data.nama || !data.kelas) {
+      return res.status(400).json({ error: 'NISN, nama, dan kelas harus diisi' });
+    }
+    
+    // Check if NISN already exists
+    const [existing] = await db.execute('SELECT nisn FROM students WHERE nisn = ?', [data.nisn]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'NISN sudah terdaftar' });
+    }
+    
+    // Generate ID for backward compatibility (auto-increment simulation)
+    const [maxId] = await db.execute('SELECT COALESCE(MAX(id), 0) + 1 as next_id FROM students');
+    const nextId = maxId[0].next_id;
+    
+    const sql = `INSERT INTO students (
+      id, nisn, nama, kelas, alamat, no_hp, nama_wali, jenis_kelamin, angkatan, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+    
     const values = [
+      nextId,
       data.nisn,
-      data.nama || data.name, 
+      data.nama, 
       data.kelas, 
-      data.alamat, 
-      data.no_hp || data.no_telepon, 
-      data.nama_wali || data.nama_orang_tua,
+      data.alamat || null, 
+      data.no_hp || null, 
+      data.nama_wali || null,
       data.jenis_kelamin || 'L',
       data.angkatan || new Date().getFullYear().toString()
     ];
+    
     const [result] = await db.execute(sql, values);
-    res.json({ message: 'Siswa ditambahkan', nisn: data.nisn });
+    
+    res.json({ 
+      message: 'Siswa berhasil ditambahkan', 
+      nisn: data.nisn,
+      id: nextId
+    });
+    
   } catch (err) {
     console.error('Create student error:', err);
-    res.status(500).json({ error: 'Database error', details: err.message });
+    
+    // Handle specific MySQL errors
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'NISN atau ID sudah terdaftar' });
+    }
+    
+    res.status(500).json({ 
+      error: 'Database error', 
+      details: err.message,
+      code: err.code 
+    });
   }
 });
 
