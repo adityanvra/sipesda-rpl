@@ -256,7 +256,7 @@ const ManajemenSiswa: React.FC<ManajemenSiswaProps> = ({
         </div>
       </div>
 
-      <div className="bg-gray-100/80 rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
         {/* Search and Add Section */}
         <div className="p-6 border-b bg-gradient-to-r from-purple-50 to-blue-50">
           <div className="flex items-center justify-between mb-4">

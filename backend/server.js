@@ -9,9 +9,10 @@ const paymentTypes = require('./routes/paymentTypes');
 
 const app = express();
 
+// CORS configuration for production
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://sipesda-rpl-fe.vercel.app'] 
+    ? ['https://your-frontend-domain.vercel.app'] // Ganti dengan domain Vercel Anda
     : ['http://localhost:5173', 'http://localhost:3000'],
   credentials: true,
 };

@@ -19,18 +19,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Get all users (for debugging)
-router.get('/', async (req, res) => {
-  try {
-    const sql = 'SELECT id, username, email, role, created_at FROM users';
-    const [results] = await db.execute(sql);
-    res.json(results);
-  } catch (err) {
-    console.error('Get users error:', err);
-    res.status(500).json({ error: 'Database error', details: err.message });
-  }
-});
-
 router.post('/', async (req, res) => {
   try {
     const { username, password, role } = req.body;
