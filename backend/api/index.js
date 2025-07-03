@@ -9,18 +9,19 @@ const paymentTypes = require('../routes/paymentTypes');
 
 const app = express();
 
-// CORS configuration for production - Update dengan domain Vercel Anda  
+// CORS configuration for production - Updated with correct domains
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' 
     ? [
-        'https://sipesda-rpl-fe.vercel.app/', // Frontend URL yang sudah ada
-        'https://sipesda-rpl-fe-git-main-aditya-navras-projects-b1ead26b.vercel.app/',  // Alternative domain
-        'https://sipesda-rpl-fe-aditya-navras-projects-b1ead26b.vercel.app/' // Vercel branch URL
+        'https://sipesda-rpl-fe.vercel.app',
+        'https://sipesda-rpl-fe-git-main-aditya-navras-projects-b1ead26b.vercel.app',
+        'https://sipesda-rpl-fe-aditya-navras-projects-b1ead26b.vercel.app'
       ]
-    : ['http://localhost:24431', 'http://localhost:3306'],
+    : ['http://localhost:5173', 'http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    optionsSuccessStatus: 200
   };
   
   app.use(cors(corsOptions));
