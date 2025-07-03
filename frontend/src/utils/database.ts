@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { User, Student, Payment, PaymentType } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://sipesda-rpl.vercel.app/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://sipesda-rpl.vercel.app';
 
 class DatabaseManager {
   // USER
